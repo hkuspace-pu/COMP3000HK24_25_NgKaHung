@@ -11,6 +11,8 @@
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <link href="css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="./dist/bundle.js"></script>
+
 </head>
 
 <body class="sb-nav-fixed">
@@ -26,11 +28,22 @@
             <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                 <div class="sb-sidenav-menu">
                     <div class="nav">
-                        <div class="sb-sidenav-menu-heading">Core</div>
+                        <div class="sb-sidenav-menu-heading">KEM</div>
                         <a class="nav-link" href="Kyber.html">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             CRYSTALS-KYBER
                         </a>
+                        <a class="nav-link" href="Kyber.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            McEliece
+                        </a>
+                        <a class="nav-link" href="Kyber.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            HQC
+                        </a>
+
+
+                        <div class="sb-sidenav-menu-heading">Digital signing</div>
                         <a class="nav-link" href="Dilithium.html">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             CRYSTALS-Dilithium
@@ -73,7 +86,7 @@
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorKeyGen">
                                                 ml_kem512
                                             </button>
                                             <ul class="dropdown-menu">
@@ -87,9 +100,9 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Public key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="kemPublickeyGen" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
@@ -97,13 +110,13 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Private key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="kemPrivatekeyGen" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary mt-4" type="button">Generate</button>
+                                    <button class="btn btn-primary mt-4" type="button" id="generateKeyPair">Generate</button>
                                 </div>
                             </div>
                         </div>
@@ -119,7 +132,7 @@
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorEncapsulation">
                                                 ml_kem512
                                             </button>
                                             <ul class="dropdown-menu">
@@ -133,19 +146,19 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Public key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button">
+                                                aria-label="Text input with dropdown button" id="publicKeyInput">
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Paste</button>
+                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="d-flex mt-4">
                                         <div class="input-group">
-                                            <div class="align-self-center px-2">Symmetric Private key:</div>
+                                            <div class="align-self-center px-2">Symmetric key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="symmetricKeyOutput" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
@@ -153,13 +166,13 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Cipher Text:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="cipherTextOutput" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" >Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary px-2 mt-4" type="button">Encapsulate</button>
+                                    <button class="btn btn-primary px-2 mt-4" type="button" id="encapsulateKey">Encapsulate</button>
                                 </div>
                             </div>
                         </div>
@@ -176,7 +189,7 @@
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorDecapsulation">
                                                 ml_kem512
                                             </button>
                                             <ul class="dropdown-menu">
@@ -190,9 +203,9 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Private key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button">
+                                                aria-label="Text input with dropdown button" id="privateKeyInput">
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Paste</button>
+                                                <button class="btn btn-outline-secondary paste-btn" type="button" >Paste</button>
                                             </div>
                                         </div>
                                     </div>
@@ -200,23 +213,23 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Cipher Text:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button">
+                                                aria-label="Text input with dropdown button" id="cipherTextInput">
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Paste</button>
+                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="d-flex mt-4">
                                         <div class="input-group">
-                                            <div class="align-self-center px-2">Symmetric Private key:</div>
+                                            <div class="align-self-center px-2">Symmetric key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="symmetrickeyDecapsulate" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary px-2 mt-4" type="button">Encapsulate</button>
+                                    <button class="btn btn-primary px-2 mt-4" type="button" id="decapsulate">Decapsulate</button>
                                 </div>
                             </div>
                         </div>
@@ -240,7 +253,7 @@
     <script src="assets/demo/chart-bar-demo.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js"
         crossorigin="anonymous"></script>
-    <script src="js/datatables-simple-demo.js"></script>
+
 </body>
 
 </html>

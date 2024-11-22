@@ -1,12 +1,3 @@
-/*!
-    * Start Bootstrap - SB Admin v7.0.7 (https://startbootstrap.com/template/sb-admin)
-    * Copyright 2013-2023 Start Bootstrap
-    * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-sb-admin/blob/master/LICENSE)
-    */
-    // 
-// Scripts
-// 
-
 window.addEventListener('DOMContentLoaded', event => {
 
     // Toggle the side navigation
@@ -23,4 +14,37 @@ window.addEventListener('DOMContentLoaded', event => {
         });
     }
 
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const dropdownMenus = document.querySelectorAll('.dropdown-menu');
+
+    dropdownMenus.forEach(function (menu) {
+        menu.addEventListener('click', function (event) {
+            event.preventDefault();
+            if (event.target.classList.contains('dropdown-item')) {
+                const selectedText = event.target.textContent;
+                menu.previousElementSibling.textContent = selectedText;
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.copy-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        const input = button.closest('.input-group').querySelector('input');
+        
+        navigator.clipboard.writeText(input.value)
+    });
+});
+document.querySelectorAll('.paste-btn').forEach(button => {
+    button.addEventListener('click', async () => {
+        try {
+            const input = button.closest('.input-group').querySelector('input');
+            const text = await navigator.clipboard.readText();
+            input.value = text; 
+        } catch (error) {
+            console.error('Failed to read clipboard contents: ', error);
+        }
+    });
 });
