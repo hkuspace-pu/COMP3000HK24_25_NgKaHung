@@ -11,6 +11,10 @@
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <link href="css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="./dist/bundle.js"></script>
+    <script type="text/javascript" src="./bower_components/crypto-js/crypto-js.js"></script>
+
+
 </head>
 
 <body class="sb-nav-fixed">
@@ -58,9 +62,9 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">CRYSTALS-Dilithium</h1>
+                    <h1 class="mt-4">CRYSTALS-KYBER</h1>
                     <ol class="breadcrumb mb-4">
-                        <li class="breadcrumb-item active">A lattice-based digital signature scheme</li>
+                        <li class="breadcrumb-item active">A lattice-based key encapsulation mechanism</li>
                     </ol>
                     <div class="row">
                         <!-- Key Generation-->
@@ -75,13 +79,13 @@
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                ml_dsa44
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorKeyGen">
+                                                ml_kem512
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">ml_dsa44</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_dsa65</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_dsa87</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem512</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem768</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem1024</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -89,9 +93,9 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Public key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="kemPublickeyGen" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
@@ -99,35 +103,35 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Private key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="kemPrivatekeyGen" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary mt-4" type="button">Generate</button>
+                                    <button class="btn btn-primary mt-4" type="button" id="generateKeyPair">Generate</button>
                                 </div>
                             </div>
                         </div>
-                        <!-- Signing-->
+                        <!-- Encapsulation-->
                         <div class="col-xl-6">
                             <div class="card mb-4 shadow rounded">
                                 <div class="card-header">
-                                    <i class="fa-solid fa-signature me-1"></i>
-                                    Signing
+                                    <i class="fa-solid fa-lock me-1"></i>
+                                    Encapsulation
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex">
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                ml_dsa44
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorEncapsulation">
+                                                ml_kem512
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">ml_dsa44</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_dsa65</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_dsa87</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem512</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem768</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem1024</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -135,19 +139,19 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Public key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button">
+                                                aria-label="Text input with dropdown button" id="publicKeyInput">
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Paste</button>
+                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="d-flex mt-4">
                                         <div class="input-group">
-                                            <div class="align-self-center px-2">Symmetric Private key:</div>
+                                            <div class="align-self-center px-2">Symmetric key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="symmetricKeyOutput" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
@@ -155,13 +159,13 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Cipher Text:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="cipherTextOutput" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" >Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary px-2 mt-4" type="button">Encapsulate</button>
+                                    <button class="btn btn-primary px-2 mt-4" type="button" id="encapsulateKey">Encapsulate</button>
                                 </div>
                             </div>
                         </div>
@@ -170,7 +174,7 @@
                         <div class="col-xl-6">
                             <div class="card mb-4 shadow rounded">
                                 <div class="card-header">
-                                    <i class="fa-solid fa-lock me-1"></i>
+                                    <i class="fa-solid fa-unlock me-1"></i>
                                     Decapsulation
                                 </div>
                                 <div class="card-body">
@@ -178,13 +182,13 @@
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                ml_dsa44
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorDecapsulation">
+                                                ml_kem512
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">ml_dsa44</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_dsa65</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_dsa87</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem512</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem768</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_kem1024</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -192,9 +196,9 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Private key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button">
+                                                aria-label="Text input with dropdown button" id="privateKeyInput">
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Paste</button>
+                                                <button class="btn btn-outline-secondary paste-btn" type="button" >Paste</button>
                                             </div>
                                         </div>
                                     </div>
@@ -202,23 +206,23 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Cipher Text:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button">
+                                                aria-label="Text input with dropdown button" id="cipherTextInput">
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Paste</button>
+                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="d-flex mt-4">
                                         <div class="input-group">
-                                            <div class="align-self-center px-2">Symmetric Private key:</div>
+                                            <div class="align-self-center px-2">Symmetric key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="symmetrickeyDecapsulate" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary px-2 mt-4" type="button">Encapsulate</button>
+                                    <button class="btn btn-primary px-2 mt-4" type="button" id="decapsulate">Decapsulate</button>
                                 </div>
                             </div>
                         </div>
@@ -242,7 +246,7 @@
     <script src="assets/demo/chart-bar-demo.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js"
         crossorigin="anonymous"></script>
-    <script src="js/datatables-simple-demo.js"></script>
+
 </body>
 
 </html>
