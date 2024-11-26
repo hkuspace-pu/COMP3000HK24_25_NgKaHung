@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-    entry: './kemfunction.mjs',
+    entry: './signingfunction.mjs',
     output: {
-        filename: 'kyber.js', 
+        filename: 'signing.js', 
         path: path.resolve(__dirname, 'dist'), 
     },
     mode: 'development',
