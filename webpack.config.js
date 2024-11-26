@@ -3,10 +3,10 @@ const path = require('path');
 module.exports = {
     entry: './kemfunction.mjs',
     output: {
-        filename: 'bundle.js', // 打包後的文件名
-        path: path.resolve(__dirname, 'dist'), // 輸出目錄
+        filename: 'kyber.js', 
+        path: path.resolve(__dirname, 'dist'), 
     },
-    mode: 'development', // 或 'production'
+    mode: 'development',
     resolve: {
         fallback: {
             "buffer": require.resolve("buffer/"),

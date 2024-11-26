@@ -1,10 +1,10 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/scripts.js', // 您的入口文件
+    entry: './src/scripts.js',
     output: {
-        filename: 'bundle.js', // 打包後的文件名
-        path: path.resolve(__dirname, 'dist'), // 輸出目錄
+        filename: 'signing.js', 
+        path: path.resolve(__dirname, 'dist'),
     },
-    mode: 'development', // 或 'production'
+    mode: 'development', 
 };

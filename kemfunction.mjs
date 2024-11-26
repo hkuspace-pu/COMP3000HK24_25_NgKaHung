@@ -4,7 +4,6 @@ import { ml_kem512, ml_kem768, ml_kem1024 } from '@noble/post-quantum/ml-kem';
 
 import { Buffer } from 'buffer';
 
-// [Alice] generates secret & public keys, then sends publicKey to Bob
 
 const algorithms = {
     'ml_kem512': ml_kem512,
@@ -40,7 +39,7 @@ export function decapsulate(algorithm, cipherText,privateKey){
 }
 
 
-//Encapsulation
+//Key Generate
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('generateKeyPair').addEventListener('click', async () => {
         try {

@@ -62,9 +62,9 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">CRYSTALS-KYBER</h1>
+                    <h1 class="mt-4">CRYSTALS-Dilithium</h1>
                     <ol class="breadcrumb mb-4">
-                        <li class="breadcrumb-item active">A lattice-based key encapsulation mechanism</li>
+                        <li class="breadcrumb-item active">A lattice-based digital signature scheme</li>
                     </ol>
                     <div class="row">
                         <!-- Key Generation-->
@@ -80,12 +80,12 @@
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
                                                 data-bs-toggle="dropdown" aria-expanded="false" id="selectorKeyGen">
-                                                ml_kem512
+                                                ml_dsa44
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">ml_kem512</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_kem768</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_kem1024</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa44</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa65</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa87</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -93,7 +93,7 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Public key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="kemPublickeyGen" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="signingPublickeyGen" disabled readonly>
                                             <div class="input-group-append">
                                                 <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
@@ -103,7 +103,7 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Private key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="kemPrivatekeyGen" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="signingPrivatekeyGen" disabled readonly>
                                             <div class="input-group-append">
                                                 <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
                                             </div>
@@ -113,82 +113,25 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Encapsulation-->
+                        <!-- Signing-->
                         <div class="col-xl-6">
                             <div class="card mb-4 shadow rounded">
                                 <div class="card-header">
-                                    <i class="fa-solid fa-lock me-1"></i>
-                                    Encapsulation
+                                    <i class="fa-solid fa-signature me-1"></i>
+                                    Signing
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex">
                                         <div class="align-self-center px-2">Selected algorithm:</div>
                                         <div class="dropdown">
                                             <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorEncapsulation">
-                                                ml_kem512
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorSigning">
+                                                ml_dsa44
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">ml_kem512</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_kem768</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_kem1024</a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex mt-4">
-                                        <div class="input-group">
-                                            <div class="align-self-center px-2">Public key:</div>
-                                            <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="publicKeyInput">
-                                            <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex mt-4">
-                                        <div class="input-group">
-                                            <div class="align-self-center px-2">Symmetric key:</div>
-                                            <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="symmetricKeyOutput" disabled readonly>
-                                            <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex mt-4">
-                                        <div class="input-group">
-                                            <div class="align-self-center px-2">Cipher Text:</div>
-                                            <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="cipherTextOutput" disabled readonly>
-                                            <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary copy-btn" type="button" >Copy</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-primary px-2 mt-4" type="button" id="encapsulateKey">Encapsulate</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Decapsulation-->
-                        <div class="col-xl-6">
-                            <div class="card mb-4 shadow rounded">
-                                <div class="card-header">
-                                    <i class="fa-solid fa-unlock me-1"></i>
-                                    Decapsulation
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex">
-                                        <div class="align-self-center px-2">Selected algorithm:</div>
-                                        <div class="dropdown">
-                                            <button class="btn border dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorDecapsulation">
-                                                ml_kem512
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">ml_kem512</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_kem768</a></li>
-                                                <li><a class="dropdown-item" href="#">ml_kem1024</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa44</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa65</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa87</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -196,17 +139,7 @@
                                         <div class="input-group">
                                             <div class="align-self-center px-2">Private key:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="privateKeyInput">
-                                            <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary paste-btn" type="button" >Paste</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex mt-4">
-                                        <div class="input-group">
-                                            <div class="align-self-center px-2">Cipher Text:</div>
-                                            <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="cipherTextInput">
+                                                aria-label="Text input with dropdown button" id="privatekeyInput">
                                             <div class="input-group-append">
                                                 <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
                                             </div>
@@ -214,15 +147,87 @@
                                     </div>
                                     <div class="d-flex mt-4">
                                         <div class="input-group">
-                                            <div class="align-self-center px-2">Symmetric key:</div>
+                                            <div class="align-self-center px-2">Message:</div>
                                             <input type="text" class="form-control"
-                                                aria-label="Text input with dropdown button" id="symmetrickeyDecapsulate" disabled readonly>
+                                                aria-label="Text input with dropdown button" id="messageInput">
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
+                                                </div>
+                                            </div>
+                                    </div>
+                                    <div class="d-flex mt-4">
+                                        <div class="input-group">
+                                            <div class="align-self-center px-2">Signature:</div>
+                                            <input type="text" class="form-control"
+                                                aria-label="Text input with dropdown button" id="signatureOutput" disabled readonly>
                                             <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary copy-btn" type="button">Copy</button>
+                                                <button class="btn btn-outline-secondary copy-btn" type="button" >Copy</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary px-2 mt-4" type="button" id="decapsulate">Decapsulate</button>
+                                    <button class="btn btn-primary px-2 mt-4" type="button" id="Sign">Sign</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Verify-->
+                        <div class="col-xl-6">
+                            <div class="card mb-4 shadow rounded">
+                                <div class="card-header">
+                                    <i class="fa-solid fa-unlock me-1"></i>
+                                    Verification
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex">
+                                        <div class="align-self-center px-2">Selected algorithm:</div>
+                                        <div class="dropdown">
+                                            <button class="btn border dropdown-toggle" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false" id="selectorVerification">
+                                                ml_dsa44
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#">ml_dsa44</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa65</a></li>
+                                                <li><a class="dropdown-item" href="#">ml_dsa87</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex mt-4">
+                                        <div class="input-group">
+                                            <div class="align-self-center px-2">Public key:</div>
+                                            <input type="text" class="form-control"
+                                                aria-label="Text input with dropdown button" id="publickeyInput">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary paste-btn" type="button" >Paste</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex mt-4">
+                                        <div class="input-group">
+                                            <div class="align-self-center px-2">Received Message:</div>
+                                            <input type="text" class="form-control"
+                                                aria-label="Text input with dropdown button" id="receivedMessageInput">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex mt-4">
+                                        <div class="input-group">
+                                            <div class="align-self-center px-2">Received Signature:</div>
+                                            <input type="text" class="form-control"
+                                                aria-label="Text input with dropdown button" id="signatureInput">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary paste-btn" type="button">Paste</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex mt-4">
+                                        <div class="align-self-center px-2">Validity:</div>
+                                        <i id="checkIcon" class="fa-solid fa-check fa-2x invisible" style="color: green;"></i>
+                                        <i id="xmarkIcon" class="fa-solid fa-xmark fa-2x invisible" style="color: red;"></i>
+                                    </div>
+                                    <button class="btn btn-primary px-2 mt-4" type="button" id="verify">verify</button>
                                 </div>
                             </div>
                         </div>

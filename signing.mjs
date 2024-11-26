@@ -8,14 +8,11 @@ import {
     slh_dsa_shake_256f, slh_dsa_shake_256s,
   } from '@noble/post-quantum/slh-dsa';
   
-function keygen(algorithm) {
+function keygenSign(algorithm) {
     const keys = algorithm.keygen();
     return keys;
 }
 
-function textInput(text){
-
-}
 function sign(algorithm,secretKey,msg) {
     const sig = algorithm.sign(secretKey, msg);
     return sig;
