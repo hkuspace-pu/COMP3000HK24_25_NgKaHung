@@ -15,7 +15,6 @@ import {
   
   import { Buffer } from "buffer";
   
-  // 定義支持的算法
   const algorithms = {
     "ml_dsa44": ml_dsa44,
     "ml_dsa65": ml_dsa65,

@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-    entry: './signingfunction.mjs',
+    entry: './testButton.mjs',
     output: {
-        filename: 'signing.js', 
+        filename: 'testButton.js', 
         path: path.resolve(__dirname, 'dist'), 
     },
     mode: 'development',
