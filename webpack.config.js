@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-    entry: './testButton.mjs',
+    entry: './testButtonWebAssembly.mjs',
     output: {
-        filename: 'testButton.js', 
+        filename: 'testButtonWebAssembly.js', 
         path: path.resolve(__dirname, 'dist'), 
     },
     mode: 'development',
