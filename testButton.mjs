@@ -18,25 +18,27 @@ import {
   slh_dsa_shake_256f, slh_dsa_shake_256s,
 } from "@noble/post-quantum/slh-dsa";
 
-// 定義所有算法
 const algorithms = {
-  // KEM 算法
-  ml_kem512,
-  ml_kem768,
-  ml_kem1024,
-  // DSA 算法
-  ml_dsa44,
-  ml_dsa65,
-  ml_dsa87,
-  slh_dsa_sha2_128f, slh_dsa_sha2_128s,
-  slh_dsa_sha2_192f, slh_dsa_sha2_192s,
-  slh_dsa_sha2_256f, slh_dsa_sha2_256s,
-  slh_dsa_shake_128f, slh_dsa_shake_128s,
-  slh_dsa_shake_192f, slh_dsa_shake_192s,
-  slh_dsa_shake_256f, slh_dsa_shake_256s,
+  kyber: {
+    ml_kem512,
+    ml_kem768,
+    ml_kem1024,
+  },
+  dilithium: {
+    ml_dsa44,
+    ml_dsa65,
+    ml_dsa87,
+  },
+  sphincs: {
+    slh_dsa_sha2_128f, slh_dsa_sha2_128s,
+    slh_dsa_sha2_192f, slh_dsa_sha2_192s,
+    slh_dsa_sha2_256f, slh_dsa_sha2_256s,
+    slh_dsa_shake_128f, slh_dsa_shake_128s,
+    slh_dsa_shake_192f, slh_dsa_shake_192s,
+    slh_dsa_shake_256f, slh_dsa_shake_256s,
+  },
 };
 
-// 計算中位數的函數
 function calculateMedian(values) {
   if (!values.length) return 0;
   const sorted = values.slice().sort((a, b) => a - b);
@@ -46,60 +48,95 @@ function calculateMedian(values) {
     : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-// 測試函數 (支持 KEM 和 DSA)
 async function measurePerformance(algorithmName, algorithm, iterations = 1) {
   const results = {
     keygen: [],
-    encapsulate: [], // 對 KEM 是 encapsulate，對 DSA 是 sign
-    decapsulate: [], // 對 KEM 是 decapsulate，對 DSA 是 verify
+    encapsulate: [],
+    decapsulate: [],
   };
 
-  // 測試密鑰生成 (通用)
+  // Key generation performance measurement
   for (let i = 0; i < iterations; i++) {
-    const startTime = performance.now();
+    performance.mark("keygen-start");
     const { publicKey, secretKey } = algorithm.keygen();
-    const endTime = performance.now();
-    results.keygen.push(endTime - startTime);
+    performance.mark("keygen-end");
+
+    performance.measure("Keygen", "keygen-start", "keygen-end");
+    const keygenMeasure = performance.getEntriesByName("Keygen").pop();
+
+    results.keygen.push(keygenMeasure.duration);
+
+    performance.clearMarks();
+    performance.clearMeasures();
   }
 
-  // 測試加密/簽名
-  const { publicKey, secretKey } = algorithm.keygen(); // 生成密鑰對
-  const testMessage = new TextEncoder().encode("Test message"); // 測試消息
+  const { publicKey, secretKey } = algorithm.keygen();
+  const testMessage = new TextEncoder().encode("Test message");
+
+  // Encapsulation/Signing performance measurement
   for (let i = 0; i < iterations; i++) {
-    const startTime = performance.now();
+    if (window.gc) window.gc();
+
+    performance.mark("encapsulate-start");
+
     if (algorithm.encapsulate) {
-      // KEM: 封裝密鑰
       const { cipherText, sharedSecret } = algorithm.encapsulate(publicKey);
     } else if (algorithm.sign) {
-      // DSA: 簽名
       const signature = algorithm.sign(secretKey, testMessage);
     }
-    const endTime = performance.now();
-    results.encapsulate.push(endTime - startTime);
+
+    performance.mark("encapsulate-end");
+
+    performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
+    const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
+
+    results.encapsulate.push(encapsulateMeasure.duration);
+
+    performance.clearMarks();
+    performance.clearMeasures();
   }
 
-  // 測試解密/驗簽
+  // Decapsulation/Verification performance measurement
   if (algorithm.encapsulate) {
-    // KEM: 測試解密
-    const { cipherText } = algorithm.encapsulate(publicKey); // 生成密文
+    const { cipherText } = algorithm.encapsulate(publicKey);
     for (let i = 0; i < iterations; i++) {
-      const startTime = performance.now();
+      if (window.gc) window.gc();
+
+      performance.mark("decapsulate-start");
+
       const sharedSecret = algorithm.decapsulate(cipherText, secretKey);
-      const endTime = performance.now();
-      results.decapsulate.push(endTime - startTime);
+
+      performance.mark("decapsulate-end");
+
+      performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
+      const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
+
+      results.decapsulate.push(decapsulateMeasure.duration);
+
+      performance.clearMarks();
+      performance.clearMeasures();
     }
   } else if (algorithm.verify) {
-    // DSA: 測試驗簽
-    const signature = algorithm.sign(secretKey, testMessage); // 生成簽名
+    const signature = algorithm.sign(secretKey, testMessage);
     for (let i = 0; i < iterations; i++) {
-      const startTime = performance.now();
+      if (window.gc) window.gc();
+
+      performance.mark("verify-start");
+
       const isValid = algorithm.verify(publicKey, testMessage, signature);
-      const endTime = performance.now();
-      results.decapsulate.push(endTime - startTime);
+
+      performance.mark("verify-end");
+
+      performance.measure("Verify", "verify-start", "verify-end");
+      const verifyMeasure = performance.getEntriesByName("Verify").pop();
+
+      results.decapsulate.push(verifyMeasure.duration);
+
+      performance.clearMarks();
+      performance.clearMeasures();
     }
   }
 
-  // 計算中位數並返回
   return {
     algorithm: algorithmName,
     median: {
@@ -111,22 +148,38 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
   };
 }
 
-// 主測試函數
 async function runTestsWithProgress() {
-  const iterations = 1; // 每個操作測試 1 次
-  const allResults = [];
   const progressBar = document.getElementById("progressBar");
   const progressLabel = document.getElementById("progressLabel");
 
-  const algorithmNames = Object.keys(algorithms);
-  const totalAlgorithms = algorithmNames.length;
+  // 获取用户输入的迭代次数
+  const iterationsInput = document.getElementById("iterations").value;
+  const iterations = parseInt(iterationsInput, 10) || 1;
 
-  progressBar.max = totalAlgorithms; // 設置進度條最大值
-  progressBar.value = 0; // 初始化進度條
+  // 检查用户选择的算法
+  const selectedAlgorithms = [];
+  if (document.getElementById("kyber").checked) {
+    selectedAlgorithms.push(...Object.entries(algorithms.kyber));
+  }
+  if (document.getElementById("Dilithium").checked) {
+    selectedAlgorithms.push(...Object.entries(algorithms.dilithium));
+  }
+  if (document.getElementById("SPHINCS").checked) {
+    selectedAlgorithms.push(...Object.entries(algorithms.sphincs));
+  }
+
+  const totalAlgorithms = selectedAlgorithms.length;
+
+  // 初始化进度条
+  progressBar.setAttribute("aria-valuemin", "0");
+  progressBar.setAttribute("aria-valuemax", totalAlgorithms.toString());
+  progressBar.setAttribute("aria-valuenow", "0");
+  progressBar.style.width = "0%";
+
+  const allResults = [];
 
   for (let i = 0; i < totalAlgorithms; i++) {
-    const name = algorithmNames[i];
-    const algorithm = algorithms[name];
+    const [name, algorithm] = selectedAlgorithms[i];
 
     progressLabel.textContent = `Testing ${name} (${i + 1}/${totalAlgorithms})...`;
     console.log(`Testing algorithm: ${name}...`);
@@ -134,23 +187,29 @@ async function runTestsWithProgress() {
     const result = await measurePerformance(name, algorithm, iterations);
     allResults.push(result);
 
-    // 更新進度條
-    progressBar.value = i + 1;
+    const progressPercentage = ((i + 1) / totalAlgorithms) * 100;
 
-    // 插入短暫延遲，允許瀏覽器更新進度條
+    progressBar.setAttribute("aria-valuenow", (i + 1).toString());
+    progressBar.style.width = `${progressPercentage}%`;
+
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
   progressLabel.textContent = "All tests completed!";
+  progressBar.setAttribute("aria-valuenow", totalAlgorithms.toString());
+  progressBar.style.width = "100%";
+
+  const closeButton = document.getElementById("closeButton");
+  closeButton.style.display = "block";
+
   return allResults;
 }
 
-// 初始化圖表數據
 const operations = ["keygen", "encapsulate", "decapsulate"];
 const colors = {
-  keygen: "rgba(255, 99, 132, 1)", // 紅色
-  encapsulate: "rgba(54, 162, 235, 1)", // 藍色
-  decapsulate: "rgba(75, 192, 192, 1)", // 綠色
+  keygen: "rgba(255, 99, 132, 1)",
+  encapsulate: "rgba(54, 162, 235, 1)",
+  decapsulate: "rgba(75, 192, 192, 1)",
 };
 const pointStyles = {
   keygen: "triangle",
@@ -159,8 +218,9 @@ const pointStyles = {
 };
 const scatterData = { datasets: [] };
 
-// 配置對數圖表
 const scatterOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
   plugins: {
     legend: {
       display: true,
@@ -193,7 +253,7 @@ const scatterOptions = {
   },
 };
 
-// 初始化圖表
+
 window.addEventListener("load", () => {
   const ctx = document.getElementById("performanceScatterPlot").getContext("2d");
   const chart = new Chart(ctx, {
@@ -202,30 +262,34 @@ window.addEventListener("load", () => {
     options: scatterOptions,
   });
 
-  // 按鈕點擊事件
   document.getElementById("runTestButton").addEventListener("click", async () => {
     try {
       const results = await runTestsWithProgress();
-      
-      // 更新圖表數據
+
+      const operationDisplayNames = {
+        keygen: "keygen",
+        encapsulate: "encapsulate/sign",
+        decapsulate: "decapsulate/verify",
+      };
+
       chart.data.datasets = operations.map((operation) => ({
-        label: operation.charAt(0).toUpperCase() + operation.slice(1),
+        label: operationDisplayNames[operation],
         data: results.map((result) => ({
           x: result.algorithm,
-          y: result.median[operation] || 0.01, // 防止對數尺度中出現 0
+          y: result.median[operation] || 0.01,
         })),
         backgroundColor: colors[operation],
         pointStyle: pointStyles[operation],
         pointRadius: 10,
       }));
 
-      // 更新圖表
       chart.update();
+
     } catch (error) {
       console.error("Error running tests:", error);
       alert("Failed to run tests. Check the console for details.");
-    } finally{
-      const close = document.getElementById("closeButton");
+    } finally {
+      const close = document.getElementById("closeButton1");
       close.style.display = "block";
     }
   });

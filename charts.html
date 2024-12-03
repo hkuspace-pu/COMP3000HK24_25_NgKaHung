@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Charts - SB Admin</title>
+    <title>PQC Cryptex</title>
     <link href="css/styles.css" rel="stylesheet" />
     <script src="./dist/testButton.js"></script>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
@@ -15,9 +15,7 @@
 
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-        <!-- Navbar Brand-->
-        <a class="navbar-brand ps-3" href="Kyber.html">PQC Cryptex</a>
-        <!-- Sidebar Toggle-->
+        <a class="navbar-brand ps-3" href="index.html">PQC Cryptex</a>
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i
                 class="fas fa-bars"></i></button>
     </nav>
@@ -27,25 +25,27 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">Running Tests</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                        style="display: none"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"
+                        style="display: none;"></button>
                 </div>
                 <div class="modal-body">
                     <div class="progress">
                         <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
                             role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
-                            style="width: 0%"></div>
+                            style="width: 0%;"></div>
                     </div>
                     <p id="progressLabel" class="mt-3 text-center">Preparing to run tests...</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="closeButton" data-bs-dismiss="modal" style="display: none">
+                    <button type="button" class="btn btn-secondary" id="closeButton1" data-bs-dismiss="modal"
+                        style="display: none;">
                         Close
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
 
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
@@ -75,8 +75,13 @@
                         <div class="sb-sidenav-menu-heading">Experiment</div>
                         <a class="nav-link" href="charts.html">
                             <div class="sb-nav-link-icon"><i class="fa-solid fa-flask"></i></div>
-                            Test
+                            Test (JavaScript Implementation)
                         </a>
+                        <a class="nav-link" href="charts2.html">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-flask"></i></div>
+                            Test (WebAssembly)
+                        </a>
+
                     </div>
                 </div>
             </nav>
@@ -85,7 +90,7 @@
             <main>
 
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">Test Chart</h1>
+                    <h1 class="mt-4">Test (JavaScript Implementation)</h1>
 
                     <div class="card mb-4">
                     </div>
@@ -110,21 +115,23 @@
                                         <label class="form-check-label" for="flexSwitchCheckChecked">DILITHIUM</label>
                                     </div>
                                     <div class="form-check form-switch px-5">
-                                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"
+                                        <input class="form-check-input" type="checkbox" id="SPHINCS"
                                             checked>
                                         <label class="form-check-label" for="flexSwitchCheckChecked">SPHINCS</label>
                                     </div>
                                     <div class="form-check form-switch px-5">
-                                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"
+                                        <input class="form-check-input" type="checkbox" id="FALCON"
                                             checked>
                                         <label class="form-check-label" for="flexSwitchCheckChecked">FALCON</label>
                                     </div>
                                     <div class="d-flex">
                                         <div class="align-self-center px-2">Iterations:</div>
+                                        <div class="input-group" style="width: 20%;">
+                                            <input type="text" class="form-control"
+                                                aria-label="Text input" id="iterations" value="385">
+                                        </div>
                                     </div>
-
-                                    <div class="container my-5">
-                                        <!-- 按鈕觸發模態窗口 -->
+                                    <div class="container py-2">
                                         <button type="button" id="runTestButton" class="btn btn-primary"
                                             data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                             Run Tests
@@ -139,9 +146,13 @@
                             <i class="fas fa-chart-area me-1"></i>
                             Median time
                         </div>
-                        <div class="card-body"><canvas id="performanceScatterPlot" width="100%"></canvas>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; width: 100%; height: 800px;">
+                                <canvas id="performanceScatterPlot"></canvas>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </main>
             <footer class="py-4 bg-light mt-auto">
@@ -156,7 +167,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
         crossorigin="anonymous"></script>
     <script src="js/scripts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
 </body>
 
 </html>
