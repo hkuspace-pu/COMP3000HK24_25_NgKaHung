@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-    entry: './testButtonWebAssembly.mjs',
+    entry: './kemfunctionForWebAssem.mjs',
     output: {
-        filename: 'testButtonWebAssembly.js', 
+        filename: 'kemfunctionForWebAssem.js', 
         path: path.resolve(__dirname, 'dist'), 
     },
     mode: 'development',
