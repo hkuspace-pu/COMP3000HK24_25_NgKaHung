@@ -22,7 +22,10 @@ import slh_dsa_shake_256s from './SPHINCS/pqc-sign-sphincs-shake256-256s-robust-
 import falcon_512 from './PQC WebAssembly/pqc-sign-falcon-512-browser/dist/pqc-sign-falcon-512.js';
 import falcon_1024 from './PQC WebAssembly/pqc-sign-falcon-1024-browser/dist/pqc-sign-falcon-1024.js';
 
-import Chart from "https://cdn.jsdelivr.net/npm/chart.js";
+import { Chart, registerables } from "https://cdn.jsdelivr.net/npm/chart.js/+esm";
+
+Chart.register(...registerables);
+
 
 const algorithms = {
   kyber: {
