@@ -1,6 +1,6 @@
-import ml_dsa44 from './node_modules/@dashlane/pqc-sign-dilithium2-browser/dist/pqc-sign-dilithium2.js';
-import ml_dsa65 from './node_modules/@dashlane/pqc-sign-dilithium3-browser/dist/pqc-sign-dilithium3.js';
-import ml_dsa87 from './node_modules/@dashlane/pqc-sign-dilithium5-browser/dist/pqc-sign-dilithium5.js';
+import ml_dsa44 from './PQC WebAssembly/pqc-sign-dilithium2-browser/dist/pqc-sign-dilithium2.js';
+import ml_dsa65 from './PQC WebAssembly/pqc-sign-dilithium3-browser/dist/pqc-sign-dilithium3.js';
+import ml_dsa87 from './PQC WebAssembly/pqc-sign-dilithium5-browser/dist/pqc-sign-dilithium5.js';
 
 import slh_dsa_sha2_128f from './SPHINCS/pqc-sign-sphincs-sha256-128f-robust-browser/package/dist/pqc-sign-sphincs-sha256-128f-robust.js';
 import slh_dsa_sha2_128s from './SPHINCS/pqc-sign-sphincs-sha256-128s-robust-browser/package/dist/pqc-sign-sphincs-sha256-128s-robust.js';
@@ -15,8 +15,8 @@ import slh_dsa_shake_192s from './SPHINCS/pqc-sign-sphincs-shake256-192s-robust-
 import slh_dsa_shake_256f from './SPHINCS/pqc-sign-sphincs-shake256-256f-robust-browser/package/dist/pqc-sign-sphincs-shake256-256f-robust.js';
 import slh_dsa_shake_256s from './SPHINCS/pqc-sign-sphincs-shake256-256s-robust-browser/package/dist/pqc-sign-sphincs-shake256-256s-robust.js';
 
-import falcon_512 from './node_modules/@dashlane/pqc-sign-falcon-512-browser/dist/pqc-sign-falcon-512.js';
-import falcon_1024 from './node_modules/@dashlane/pqc-sign-falcon-1024-browser/dist/pqc-sign-falcon-1024.js';
+import falcon_512 from './PQC WebAssembly/pqc-sign-falcon-512-browser/dist/pqc-sign-falcon-512.js';
+import falcon_1024 from './PQC WebAssembly/pqc-sign-falcon-1024-browser/dist/pqc-sign-falcon-1024.js';
 
 const algorithms = {
   ml_dsa44,
