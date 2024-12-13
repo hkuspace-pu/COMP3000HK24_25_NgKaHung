@@ -52,6 +52,31 @@ const algorithms = {
   }
 };
 
+function convertToCSV(data) {
+  const headers = ["Algorithm", "Operation", "Iteration", "Duration (ms)"];
+  const rows = data.map(
+    ({ algorithm, operation, iteration, duration }) =>
+      `${algorithm},${operation},${iteration},${duration}`
+  );
+
+  return [headers.join(","), ...rows].join("\n");
+}
+
+function downloadCSV(csvContent, fileName) {
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
+}
+
+
 function calculateMedian(values) {
   if (!values.length) return 0;
   const sorted = values.slice().sort((a, b) => a - b);
@@ -63,7 +88,8 @@ function calculateMedian(values) {
 
 async function measurePerformance(algorithmName, algorithmBuilder, iterations = 1) {
   const algorithm = await algorithmBuilder();
-  const results = {
+  const results = [];
+  const medianResults = {
     keygen: [],
     encapsulate: [],
     decapsulate: [],
@@ -78,7 +104,13 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
     performance.measure("Keygen", "keygen-start", "keygen-end");
     const keygenMeasure = performance.getEntriesByName("Keygen").pop();
 
-    results.keygen.push(keygenMeasure.duration);
+    medianResults.keygen.push(keygenMeasure.duration);
+    results.push({
+      algorithm: algorithmName,
+      operation: "keygen",
+      iteration: i + 1,
+      duration: keygenMeasure.duration,
+    });
 
     performance.clearMarks();
     performance.clearMeasures();
@@ -90,9 +122,15 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       const { ciphertext, sharedSecret } = await algorithm.encapsulate(publicKey);
       performance.mark("encapsulate-end");
       performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
-      results.encapsulate.push(
-        performance.getEntriesByName("Encapsulate").pop().duration
-      );
+      const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
+
+      medianResults.encapsulate.push(encapsulateMeasure.duration);
+      results.push({
+        algorithm: algorithmName,
+        operation: "encapsulate",
+        iteration: i + 1,
+        duration: encapsulateMeasure.duration,
+      });
 
       performance.mark("decapsulate-start");
       const { sharedSecret: sharedSecretB } = await algorithm.decapsulate(
@@ -101,17 +139,29 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       );
       performance.mark("decapsulate-end");
       performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
-      results.decapsulate.push(
-        performance.getEntriesByName("Decapsulate").pop().duration
-      );
+      const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
+
+      medianResults.decapsulate.push(decapsulateMeasure.duration);
+      results.push({
+        algorithm: algorithmName,
+        operation: "decapsulate",
+        iteration: i + 1,
+        duration: decapsulateMeasure.duration,
+      });
     } else if (algorithm.sign) {
       performance.mark("sign-start");
       const { signature } = await algorithm.sign(testMessage, privateKey);
       performance.mark("sign-end");
       performance.measure("Sign", "sign-start", "sign-end");
-      results.encapsulate.push(
-        performance.getEntriesByName("Sign").pop().duration
-      );
+      const signMeasure = performance.getEntriesByName("Sign").pop();
+
+      medianResults.encapsulate.push(signMeasure.duration);
+      results.push({
+        algorithm: algorithmName,
+        operation: "sign",
+        iteration: i + 1,
+        duration: signMeasure.duration,
+      });
 
       performance.mark("verify-start");
       const validSignature = await algorithm.verify(
@@ -121,9 +171,15 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       );
       performance.mark("verify-end");
       performance.measure("Verify", "verify-start", "verify-end");
-      results.decapsulate.push(
-        performance.getEntriesByName("Verify").pop().duration
-      );
+      const verifyMeasure = performance.getEntriesByName("Verify").pop();
+
+      medianResults.decapsulate.push(verifyMeasure.duration);
+      results.push({
+        algorithm: algorithmName,
+        operation: "verify",
+        iteration: i + 1,
+        duration: verifyMeasure.duration,
+      });
     }
 
     performance.clearMarks();
@@ -133,9 +189,9 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
   return {
     algorithm: algorithmName,
     median: {
-      keygen: calculateMedian(results.keygen),
-      encapsulate: calculateMedian(results.encapsulate),
-      decapsulate: calculateMedian(results.decapsulate),
+      keygen: calculateMedian(medianResults.keygen),
+      encapsulate: calculateMedian(medianResults.encapsulate),
+      decapsulate: calculateMedian(medianResults.decapsulate),
     },
     results,
   };
@@ -162,7 +218,6 @@ async function runTestsWithProgress() {
     selectedAlgorithms.push(...Object.entries(algorithms.falcon));
   }
 
-
   const totalAlgorithms = selectedAlgorithms.length;
 
   progressBar.setAttribute("aria-valuemin", "0");
@@ -171,6 +226,7 @@ async function runTestsWithProgress() {
   progressBar.style.width = "0%";
 
   const allResults = [];
+  const allDetails = [];
 
   for (let i = 0; i < totalAlgorithms; i++) {
     const [name, algorithmBuilder] = selectedAlgorithms[i];
@@ -180,6 +236,7 @@ async function runTestsWithProgress() {
 
     const result = await measurePerformance(name, algorithmBuilder, iterations);
     allResults.push(result);
+    allDetails.push(...result.results);
 
     const progressPercentage = ((i + 1) / totalAlgorithms) * 100;
 
@@ -192,6 +249,9 @@ async function runTestsWithProgress() {
   progressLabel.textContent = "All tests completed!";
   progressBar.setAttribute("aria-valuenow", totalAlgorithms.toString());
   progressBar.style.width = "100%";
+
+  const csvContent = convertToCSV(allDetails);
+  downloadCSV(csvContent, "performance_results.csv");
 
   const closeButton = document.getElementById("closeButton");
   closeButton.style.display = "block";
