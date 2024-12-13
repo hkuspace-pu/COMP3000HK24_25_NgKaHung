@@ -1,8 +1,11 @@
 {
   "dependencies": {
     "@dashlane/pqc-kem-kyber1024-browser": "^1.0.0",
+    "@dashlane/pqc-kem-kyber1024-node": "^1.0.0",
     "@dashlane/pqc-kem-kyber512-browser": "^1.0.0",
+    "@dashlane/pqc-kem-kyber512-node": "^1.0.0",
     "@dashlane/pqc-kem-kyber768-browser": "^1.0.0",
+    "@dashlane/pqc-kem-kyber768-node": "^1.0.0",
     "@dashlane/pqc-sign-dilithium2-browser": "^1.0.0",
     "@dashlane/pqc-sign-dilithium3-browser": "^1.0.0",
     "@dashlane/pqc-sign-dilithium5-browser": "^1.0.0",
