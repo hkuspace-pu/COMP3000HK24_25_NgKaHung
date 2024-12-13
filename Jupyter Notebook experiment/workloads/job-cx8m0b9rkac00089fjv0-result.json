@@ -1,0 +1,73 @@
+{
+  "__type__": "PrimitiveResult",
+  "__value__": {
+    "pub_results": [
+      {
+        "__type__": "SamplerPubResult",
+        "__value__": {
+          "data": {
+            "__type__": "DataBin",
+            "__value__": {
+              "field_names": [
+                "meas"
+              ],
+              "field_types": [
+                "<class 'qiskit.primitives.containers.bit_array.BitArray'>"
+              ],
+              "shape": [],
+              "fields": {
+                "meas": {
+                  "__type__": "BitArray",
+                  "__value__": {
+                    "array": {
+                      "__type__": "ndarray",
+                      "__value__": "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"
+                    },
+                    "num_bits": 3
+                  }
+                }
+              }
+            }
+          },
+          "metadata": {
+            "circuit_metadata": {}
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "execution": {
+        "execution_spans": {
+          "__type__": "ExecutionSpanCollection",
+          "__value__": {
+            "spans": [
+              {
+                "__type__": "ExecutionSpan",
+                "__value__": {
+                  "start": {
+                    "__type__": "datetime",
+                    "__value__": "2024-12-05T05:54:56.866253+00:00"
+                  },
+                  "stop": {
+                    "__type__": "datetime",
+                    "__value__": "2024-12-05T05:55:08.766348+00:00"
+                  },
+                  "data_slices": {
+                    "0": [
+                      [
+                        10000
+                      ],
+                      0,
+                      10000
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "version": 2
+    }
+  }
+}
