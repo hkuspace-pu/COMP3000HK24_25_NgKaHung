@@ -152,11 +152,9 @@ async function runTestsWithProgress() {
   const progressBar = document.getElementById("progressBar");
   const progressLabel = document.getElementById("progressLabel");
 
-  // 获取用户输入的迭代次数
   const iterationsInput = document.getElementById("iterations").value;
   const iterations = parseInt(iterationsInput, 10) || 1;
 
-  // 检查用户选择的算法
   const selectedAlgorithms = [];
   if (document.getElementById("kyber").checked) {
     selectedAlgorithms.push(...Object.entries(algorithms.kyber));
@@ -170,7 +168,6 @@ async function runTestsWithProgress() {
 
   const totalAlgorithms = selectedAlgorithms.length;
 
-  // 初始化进度条
   progressBar.setAttribute("aria-valuemin", "0");
   progressBar.setAttribute("aria-valuemax", totalAlgorithms.toString());
   progressBar.setAttribute("aria-valuenow", "0");

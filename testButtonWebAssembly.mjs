@@ -250,8 +250,6 @@ async function runTestsWithProgress() {
   progressBar.setAttribute("aria-valuenow", totalAlgorithms.toString());
   progressBar.style.width = "100%";
 
-  const csvContent = convertToCSV(allDetails);
-  downloadCSV(csvContent, "performance_results.csv");
 
   const closeButton = document.getElementById("closeButton");
   closeButton.style.display = "block";
