@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-    entry: './kemfunctionForWebAssem.mjs',
+    entry: './testButton.mjs',
     output: {
-        filename: 'kyber.js', 
+        filename: 'testButton.js', 
         path: path.resolve(__dirname, 'dist'), 
     },
     mode: 'development',

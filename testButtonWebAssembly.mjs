@@ -52,28 +52,32 @@ const algorithms = {
   }
 };
 
-function convertToCSV(data) {
-  const headers = ["Algorithm", "Operation", "Iteration", "Duration (ms)"];
-  const rows = data.map(
-    ({ algorithm, operation, iteration, duration }) =>
-      `${algorithm},${operation},${iteration},${duration}`
-  );
+function saveResultsAsCsv(results) {
+  const csvHeaders = ["Algorithm", "Operation", "Median Time (ms)"];
+  const csvRows = [csvHeaders.join(",")];
 
-  return [headers.join(","), ...rows].join("\n");
-}
+  results.forEach((result) => {
+    Object.entries(result.median).forEach(([operation, medianTime]) => {
+      csvRows.push(`${result.algorithm},${operation},${medianTime}`);
+    });
+  });
 
-function downloadCSV(csvContent, fileName) {
+  const csvContent = csvRows.join("\n");
   const blob = new Blob([csvContent], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
+  a.download = "PQC_Performance_Results.csv";
   a.click();
-  document.body.removeChild(a);
 
   URL.revokeObjectURL(url);
+}
+function saveChartAsImage(chart) {
+  const link = document.createElement("a");
+  link.download = "PQC_Performance_Chart.png";
+  link.href = chart.toBase64Image("image/png", 1.0);
+  link.click();
 }
 
 
@@ -313,7 +317,6 @@ window.addEventListener("load", () => {
     data: scatterData,
     options: scatterOptions,
   });
-
   document.getElementById("runTestButton").addEventListener("click", async () => {
     try {
       const results = await runTestsWithProgress();
@@ -336,7 +339,16 @@ window.addEventListener("load", () => {
       }));
 
       chart.update();
+      document.getElementById("saveCsvButton").style.display = "block";
+      document.getElementById("saveImageButton").style.display = "block";
 
+      document.getElementById("saveCsvButton").addEventListener("click", () => {
+        saveResultsAsCsv(results);
+      });
+
+      document.getElementById("saveImageButton").addEventListener("click", () => {
+        saveChartAsImage(chart);
+      });
     } catch (error) {
       console.error("Error running tests:", error);
       alert("Failed to run tests. Check the console for details.");

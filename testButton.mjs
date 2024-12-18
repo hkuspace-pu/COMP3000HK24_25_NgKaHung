@@ -39,6 +39,35 @@ const algorithms = {
   },
 };
 
+function saveResultsAsCsv(results) {
+  const csvHeaders = ["Algorithm", "Operation", "Median Time (ms)"];
+  const csvRows = [csvHeaders.join(",")];
+
+  results.forEach((result) => {
+    Object.entries(result.median).forEach(([operation, medianTime]) => {
+      csvRows.push(`${result.algorithm},${operation},${medianTime}`);
+    });
+  });
+
+  const csvContent = csvRows.join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "PQC_Performance_Results.csv";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+function saveChartAsImage(chart) {
+  const link = document.createElement("a");
+  link.download = "PQC_Performance_Chart.png";
+  link.href = chart.toBase64Image("image/png", 1.0);
+  link.click();
+}
+
+
 function calculateMedian(values) {
   if (!values.length) return 0;
   const sorted = values.slice().sort((a, b) => a - b);
@@ -281,6 +310,16 @@ window.addEventListener("load", () => {
       }));
 
       chart.update();
+      document.getElementById("saveCsvButton").style.display = "block";
+      document.getElementById("saveImageButton").style.display = "block";
+
+      document.getElementById("saveCsvButton").addEventListener("click", () => {
+        saveResultsAsCsv(results);
+      });
+
+      document.getElementById("saveImageButton").addEventListener("click", () => {
+        saveChartAsImage(chart);
+      });
 
     } catch (error) {
       console.error("Error running tests:", error);
