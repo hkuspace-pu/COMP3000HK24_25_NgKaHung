@@ -53,12 +53,12 @@ const algorithms = {
 };
 
 function saveResultsAsCsv(results) {
-  const csvHeaders = ["Algorithm", "Operation", "Median Time (ms)"];
+  const csvHeaders = ["Algorithm", "Operation", "Mean Time (ms)"];
   const csvRows = [csvHeaders.join(",")];
 
   results.forEach((result) => {
-    Object.entries(result.median).forEach(([operation, medianTime]) => {
-      csvRows.push(`${result.algorithm},${operation},${medianTime}`);
+    Object.entries(result.average).forEach(([operation, averageTime]) => {
+      csvRows.push(`${result.algorithm},${operation},${averageTime}`);
     });
   });
 
@@ -73,13 +73,6 @@ function saveResultsAsCsv(results) {
 
   URL.revokeObjectURL(url);
 }
-function saveChartAsImage(chart) {
-  const link = document.createElement("a");
-  link.download = "PQC_Performance_Chart.png";
-  link.href = chart.toBase64Image("image/png", 1.0);
-  link.click();
-}
-
 
 function calculateMedian(values) {
   if (!values.length) return 0;
@@ -92,118 +85,73 @@ function calculateMedian(values) {
 
 async function measurePerformance(algorithmName, algorithmBuilder, iterations = 1) {
   const algorithm = await algorithmBuilder();
-  const results = [];
-  const operationDurations = {
-    keygen: [],
-    encapsulate: [],
-    decapsulate: [],
+  const totalTimes = {
+    keygen: 0,
+    encapsulate: 0,
+    decapsulate: 0,
   };
 
-  // Key generation, encapsulation, and decapsulation performance measurement
+  const testMessage = new Uint8Array([0x44, 0x61, 0x73, 0x68, 0x6c, 0x61, 0x6e, 0x65]); // "Dashlane" in ASCII
+
+  // Measure Key Generation
+  const keygenStartTime = performance.now();
   for (let i = 0; i < iterations; i++) {
-    performance.mark("keygen-start");
     const { publicKey, privateKey } = await algorithm.keypair();
-    performance.mark("keygen-end");
-
-    performance.measure("Keygen", "keygen-start", "keygen-end");
-    const keygenMeasure = performance.getEntriesByName("Keygen").pop();
-
-    operationDurations.keygen.push(keygenMeasure.duration);
-    results.push({
-      algorithm: algorithmName,
-      operation: "keygen",
-      iteration: i + 1,
-      duration: keygenMeasure.duration,
-    });
-
-    performance.clearMarks();
-    performance.clearMeasures();
-    const testMessage = new Uint8Array([0x44, 0x61, 0x73, 0x68, 0x6c, 0x61, 0x6e, 0x65]);
-
-    // Encapsulation or Signing performance measurement
-    if (algorithm.encapsulate) {
-      performance.mark("encapsulate-start");
-      const { ciphertext, sharedSecret } = await algorithm.encapsulate(publicKey);
-      performance.mark("encapsulate-end");
-      performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
-      const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
-
-      operationDurations.encapsulate.push(encapsulateMeasure.duration);
-      results.push({
-        algorithm: algorithmName,
-        operation: "encapsulate",
-        iteration: i + 1,
-        duration: encapsulateMeasure.duration,
-      });
-
-      performance.mark("decapsulate-start");
-      const { sharedSecret: sharedSecretB } = await algorithm.decapsulate(
-        ciphertext,
-        privateKey
-      );
-      performance.mark("decapsulate-end");
-      performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
-      const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
-
-      operationDurations.decapsulate.push(decapsulateMeasure.duration);
-      results.push({
-        algorithm: algorithmName,
-        operation: "decapsulate",
-        iteration: i + 1,
-        duration: decapsulateMeasure.duration,
-      });
-    } else if (algorithm.sign) {
-      performance.mark("sign-start");
-      const { signature } = await algorithm.sign(testMessage, privateKey);
-      performance.mark("sign-end");
-      performance.measure("Sign", "sign-start", "sign-end");
-      const signMeasure = performance.getEntriesByName("Sign").pop();
-
-      operationDurations.encapsulate.push(signMeasure.duration);
-      results.push({
-        algorithm: algorithmName,
-        operation: "sign",
-        iteration: i + 1,
-        duration: signMeasure.duration,
-      });
-
-      performance.mark("verify-start");
-      const validSignature = await algorithm.verify(
-        signature,
-        testMessage,
-        publicKey
-      );
-      performance.mark("verify-end");
-      performance.measure("Verify", "verify-start", "verify-end");
-      const verifyMeasure = performance.getEntriesByName("Verify").pop();
-
-      operationDurations.decapsulate.push(verifyMeasure.duration);
-      results.push({
-        algorithm: algorithmName,
-        operation: "verify",
-        iteration: i + 1,
-        duration: verifyMeasure.duration,
-      });
-    }
-
-    performance.clearMarks();
-    performance.clearMeasures();
   }
+  const keygenEndTime = performance.now();
+  totalTimes.keygen = (keygenEndTime - keygenStartTime) / iterations;
 
-  // Calculate median times only after all iterations are completed
-  const medianResults = {
-    keygen: calculateMedian(operationDurations.keygen),
-    encapsulate: calculateMedian(operationDurations.encapsulate),
-    decapsulate: calculateMedian(operationDurations.decapsulate),
-  };
+  if (algorithm.encapsulate) {
+    // Generate keypair once for encapsulation and decapsulation
+    const { publicKey, privateKey } = await algorithm.keypair();
+
+    // Measure Encapsulation
+    const encapsulateStartTime = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      const { ciphertext, sharedSecret } = await algorithm.encapsulate(publicKey);
+    }
+    const encapsulateEndTime = performance.now();
+    totalTimes.encapsulate = (encapsulateEndTime - encapsulateStartTime) / iterations;
+
+    // Measure Decapsulation
+    const { ciphertext } = await algorithm.encapsulate(publicKey);
+    const decapsulateStartTime = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      const { sharedSecret } = await algorithm.decapsulate(ciphertext, privateKey);
+    }
+    const decapsulateEndTime = performance.now();
+    totalTimes.decapsulate = (decapsulateEndTime - decapsulateStartTime) / iterations;
+  } else if (algorithm.sign) {
+    // Generate keypair once for signing and verifying
+    const { publicKey, privateKey } = await algorithm.keypair();
+
+    // Measure Signing
+    const signStartTime = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      const { signature } = await algorithm.sign(testMessage, privateKey);
+    }
+    const signEndTime = performance.now();
+    totalTimes.encapsulate = (signEndTime - signStartTime) / iterations; // Store signing time as encapsulate
+
+    // Measure Verification
+    const { signature } = await algorithm.sign(testMessage, privateKey);
+    const verifyStartTime = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      const validSignature = await algorithm.verify(signature, testMessage, publicKey);
+    }
+    const verifyEndTime = performance.now();
+    totalTimes.decapsulate = (verifyEndTime - verifyStartTime) / iterations; // Store verification time as decapsulate
+  }
 
   return {
     algorithm: algorithmName,
-    median: medianResults,
-    results,
+    average: {
+      keygen: totalTimes.keygen,
+      encapsulate: totalTimes.encapsulate,
+      decapsulate: totalTimes.decapsulate,
+    },
   };
 }
-
 async function runTestsWithProgress() {
   const progressBar = document.getElementById("progressBar");
   const progressLabel = document.getElementById("progressLabel");
@@ -233,7 +181,6 @@ async function runTestsWithProgress() {
   progressBar.style.width = "0%";
 
   const allResults = [];
-  const allDetails = [];
 
   for (let i = 0; i < totalAlgorithms; i++) {
     const [name, algorithmBuilder] = selectedAlgorithms[i];
@@ -243,7 +190,6 @@ async function runTestsWithProgress() {
 
     const result = await measurePerformance(name, algorithmBuilder, iterations);
     allResults.push(result);
-    allDetails.push(...result.results);
 
     const progressPercentage = ((i + 1) / totalAlgorithms) * 100;
 
@@ -257,13 +203,11 @@ async function runTestsWithProgress() {
   progressBar.setAttribute("aria-valuenow", totalAlgorithms.toString());
   progressBar.style.width = "100%";
 
-
   const closeButton = document.getElementById("closeButton");
   closeButton.style.display = "block";
 
   return allResults;
 }
-
 const operations = ["keygen", "encapsulate", "decapsulate"];
 const colors = {
   keygen: "rgba(255, 99, 132, 1)",
@@ -301,7 +245,7 @@ const scatterOptions = {
       beginAtZero: false,
       title: {
         display: true,
-        text: "Median Execution Time (ms)",
+        text: "Mean Execution Time (ms)",
       },
       ticks: {
         callback: function (value) {
@@ -320,21 +264,22 @@ window.addEventListener("load", () => {
     data: scatterData,
     options: scatterOptions,
   });
+
   document.getElementById("runTestButton").addEventListener("click", async () => {
     try {
       const results = await runTestsWithProgress();
 
       const operationDisplayNames = {
-        keygen: "keygen",
-        encapsulate: "encapsulate/sign",
-        decapsulate: "decapsulate/verify",
+        keygen: "Key Generation",
+        encapsulate: "Encapsulation/Signing",
+        decapsulate: "Decapsulation/Verification",
       };
 
       chart.data.datasets = operations.map((operation) => ({
         label: operationDisplayNames[operation],
         data: results.map((result) => ({
           x: result.algorithm,
-          y: result.median[operation] || 0.01,
+          y: result.average[operation] || 0.01,
         })),
         backgroundColor: colors[operation],
         pointStyle: pointStyles[operation],
@@ -342,9 +287,11 @@ window.addEventListener("load", () => {
       }));
 
       chart.update();
+      const saveCsvButton = document.getElementById("saveCsvButton");
       document.getElementById("saveCsvButton").style.display = "block";
       document.getElementById("saveImageButton").style.display = "block";
 
+      saveCsvButton.replaceWith(saveCsvButton.cloneNode(true));
       document.getElementById("saveCsvButton").addEventListener("click", () => {
         saveResultsAsCsv(results);
       });

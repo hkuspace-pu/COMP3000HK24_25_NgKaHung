@@ -40,12 +40,12 @@ const algorithms = {
 };
 
 function saveResultsAsCsv(results) {
-  const csvHeaders = ["Algorithm", "Operation", "Median Time (ms)"];
+  const csvHeaders = ["Algorithm", "Operation", "Mean Time (ms)"];
   const csvRows = [csvHeaders.join(",")];
 
   results.forEach((result) => {
-    Object.entries(result.median).forEach(([operation, medianTime]) => {
-      csvRows.push(`${result.algorithm},${operation},${medianTime}`);
+    Object.entries(result.average).forEach(([operation, averageTime]) => {
+      csvRows.push(`${result.algorithm},${operation},${averageTime}`);
     });
   });
 
@@ -60,6 +60,7 @@ function saveResultsAsCsv(results) {
 
   URL.revokeObjectURL(url);
 }
+
 function saveChartAsImage(chart) {
   const link = document.createElement("a");
   link.download = "PQC_Performance_Chart.png";
@@ -68,113 +69,76 @@ function saveChartAsImage(chart) {
 }
 
 
-function calculateMedian(values) {
-  if (!values.length) return 0;
-  const sorted = values.slice().sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
 async function measurePerformance(algorithmName, algorithm, iterations = 1) {
   const operationDurations = {
-    keygen: [],
-    encapsulate: [],
-    decapsulate: [],
+    keygen: 0,
+    encapsulate: 0,
+    decapsulate: 0,
   };
 
   // Key generation performance measurement
+  performance.mark("keygen-start");
   for (let i = 0; i < iterations; i++) {
-    performance.mark("keygen-start");
     const { publicKey, secretKey } = algorithm.keygen();
-    performance.mark("keygen-end");
-
-    performance.measure("Keygen", "keygen-start", "keygen-end");
-    const keygenMeasure = performance.getEntriesByName("Keygen").pop();
-
-    operationDurations.keygen.push(keygenMeasure.duration);
-
-    performance.clearMarks();
-    performance.clearMeasures();
   }
+  performance.mark("keygen-end");
+  performance.measure("Keygen", "keygen-start", "keygen-end");
+  const keygenMeasure = performance.getEntriesByName("Keygen").pop();
+  operationDurations.keygen = keygenMeasure.duration / iterations; // 平均值計算
 
+  // Encapsulation/Signing performance measurement
   const { publicKey, secretKey } = algorithm.keygen();
   const testMessage = new TextEncoder().encode("Test message");
 
-  // Encapsulation/Signing performance measurement
-  for (let i = 0; i < iterations; i++) {
-    if (window.gc) window.gc();
+  if (algorithm.encapsulate) {
     performance.mark("encapsulate-start");
-
-    if (algorithm.encapsulate) {
+    for (let i = 0; i < iterations; i++) {
       const { cipherText, sharedSecret } = algorithm.encapsulate(publicKey);
-    } else if (algorithm.sign) {
-      const signature = algorithm.sign(secretKey, testMessage);
     }
-
     performance.mark("encapsulate-end");
-
     performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
     const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
-
-    operationDurations.encapsulate.push(encapsulateMeasure.duration);
-
-    performance.clearMarks();
-    performance.clearMeasures();
+    operationDurations.encapsulate = encapsulateMeasure.duration / iterations; // 平均值計算
+  } else if (algorithm.sign) {
+    performance.mark("sign-start");
+    for (let i = 0; i < iterations; i++) {
+      const signature = algorithm.sign(secretKey, testMessage);
+    }
+    performance.mark("sign-end");
+    performance.measure("Sign", "sign-start", "sign-end");
+    const signMeasure = performance.getEntriesByName("Sign").pop();
+    operationDurations.encapsulate = signMeasure.duration / iterations; // 平均值計算
   }
 
   // Decapsulation/Verification performance measurement
   if (algorithm.encapsulate) {
     const { cipherText } = algorithm.encapsulate(publicKey);
+    performance.mark("decapsulate-start");
     for (let i = 0; i < iterations; i++) {
-      if (window.gc) window.gc();
-
-      performance.mark("decapsulate-start");
-
       const sharedSecret = algorithm.decapsulate(cipherText, secretKey);
-
-      performance.mark("decapsulate-end");
-
-      performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
-      const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
-
-      operationDurations.decapsulate.push(decapsulateMeasure.duration);
-
-      performance.clearMarks();
-      performance.clearMeasures();
     }
+    performance.mark("decapsulate-end");
+    performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
+    const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
+    operationDurations.decapsulate = decapsulateMeasure.duration / iterations; // 平均值計算
   } else if (algorithm.verify) {
     const signature = algorithm.sign(secretKey, testMessage);
+    performance.mark("verify-start");
     for (let i = 0; i < iterations; i++) {
-      if (window.gc) window.gc();
-
-      performance.mark("verify-start");
-
       const isValid = algorithm.verify(publicKey, testMessage, signature);
-
-      performance.mark("verify-end");
-
-      performance.measure("Verify", "verify-start", "verify-end");
-      const verifyMeasure = performance.getEntriesByName("Verify").pop();
-
-      operationDurations.decapsulate.push(verifyMeasure.duration);
-
-      performance.clearMarks();
-      performance.clearMeasures();
     }
+    performance.mark("verify-end");
+    performance.measure("Verify", "verify-start", "verify-end");
+    const verifyMeasure = performance.getEntriesByName("Verify").pop();
+    operationDurations.decapsulate = verifyMeasure.duration / iterations; 
   }
 
-  const medianResults = {
-    keygen: calculateMedian(operationDurations.keygen),
-    encapsulate: calculateMedian(operationDurations.encapsulate),
-    decapsulate: calculateMedian(operationDurations.decapsulate),
-  };
+  performance.clearMarks();
+  performance.clearMeasures();
 
   return {
     algorithm: algorithmName,
-    median: medianResults,
-    results: operationDurations,
+    average: operationDurations,
   };
 }
 
@@ -269,7 +233,7 @@ const scatterOptions = {
       beginAtZero: false,
       title: {
         display: true,
-        text: "Median Execution Time (ms)",
+        text: "Mean Execution Time (ms)",
       },
       ticks: {
         callback: function (value) {
@@ -294,16 +258,16 @@ window.addEventListener("load", () => {
       const results = await runTestsWithProgress();
 
       const operationDisplayNames = {
-        keygen: "keygen",
-        encapsulate: "encapsulate/sign",
-        decapsulate: "decapsulate/verify",
+        keygen: "Key Generation",
+        encapsulate: "Encapsulation/Signing",
+        decapsulate: "Decapsulation/Verification",
       };
 
       chart.data.datasets = operations.map((operation) => ({
         label: operationDisplayNames[operation],
         data: results.map((result) => ({
           x: result.algorithm,
-          y: result.median[operation] || 0.01,
+          y: result.average[operation] || 0.01, 
         })),
         backgroundColor: colors[operation],
         pointStyle: pointStyles[operation],
@@ -311,23 +275,29 @@ window.addEventListener("load", () => {
       }));
 
       chart.update();
-      document.getElementById("saveCsvButton").style.display = "block";
-      document.getElementById("saveImageButton").style.display = "block";
+      const saveCsvButton = document.getElementById("saveCsvButton");
+      const saveImageButton = document.getElementById("saveImageButton");
+
+      saveCsvButton.style.display = "block";
+      saveImageButton.style.display = "block";
+
+      saveCsvButton.replaceWith(saveCsvButton.cloneNode(true));
+      saveImageButton.replaceWith(saveImageButton.cloneNode(true));
 
       document.getElementById("saveCsvButton").addEventListener("click", () => {
-        saveResultsAsCsv(results);
+        saveResultsAsCsv(results); 
       });
 
       document.getElementById("saveImageButton").addEventListener("click", () => {
-        saveChartAsImage(chart);
+        saveChartAsImage(chart); 
       });
 
     } catch (error) {
       console.error("Error running tests:", error);
       alert("Failed to run tests. Check the console for details.");
     } finally {
-      const close = document.getElementById("closeButton1");
-      close.style.display = "block";
+      const closeButton = document.getElementById("closeButton1");
+      closeButton.style.display = "block";
     }
   });
 });
