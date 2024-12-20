@@ -78,7 +78,7 @@ function calculateMedian(values) {
 }
 
 async function measurePerformance(algorithmName, algorithm, iterations = 1) {
-  const results = {
+  const operationDurations = {
     keygen: [],
     encapsulate: [],
     decapsulate: [],
@@ -93,7 +93,7 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
     performance.measure("Keygen", "keygen-start", "keygen-end");
     const keygenMeasure = performance.getEntriesByName("Keygen").pop();
 
-    results.keygen.push(keygenMeasure.duration);
+    operationDurations.keygen.push(keygenMeasure.duration);
 
     performance.clearMarks();
     performance.clearMeasures();
@@ -105,7 +105,6 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
   // Encapsulation/Signing performance measurement
   for (let i = 0; i < iterations; i++) {
     if (window.gc) window.gc();
-
     performance.mark("encapsulate-start");
 
     if (algorithm.encapsulate) {
@@ -119,7 +118,7 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
     performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
     const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
 
-    results.encapsulate.push(encapsulateMeasure.duration);
+    operationDurations.encapsulate.push(encapsulateMeasure.duration);
 
     performance.clearMarks();
     performance.clearMeasures();
@@ -140,7 +139,7 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
       performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
       const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
 
-      results.decapsulate.push(decapsulateMeasure.duration);
+      operationDurations.decapsulate.push(decapsulateMeasure.duration);
 
       performance.clearMarks();
       performance.clearMeasures();
@@ -159,21 +158,23 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
       performance.measure("Verify", "verify-start", "verify-end");
       const verifyMeasure = performance.getEntriesByName("Verify").pop();
 
-      results.decapsulate.push(verifyMeasure.duration);
+      operationDurations.decapsulate.push(verifyMeasure.duration);
 
       performance.clearMarks();
       performance.clearMeasures();
     }
   }
 
+  const medianResults = {
+    keygen: calculateMedian(operationDurations.keygen),
+    encapsulate: calculateMedian(operationDurations.encapsulate),
+    decapsulate: calculateMedian(operationDurations.decapsulate),
+  };
+
   return {
     algorithm: algorithmName,
-    median: {
-      keygen: calculateMedian(results.keygen),
-      encapsulate: calculateMedian(results.encapsulate),
-      decapsulate: calculateMedian(results.decapsulate),
-    },
-    results,
+    median: medianResults,
+    results: operationDurations,
   };
 }
 

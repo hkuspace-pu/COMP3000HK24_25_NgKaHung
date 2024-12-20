@@ -93,13 +93,13 @@ function calculateMedian(values) {
 async function measurePerformance(algorithmName, algorithmBuilder, iterations = 1) {
   const algorithm = await algorithmBuilder();
   const results = [];
-  const medianResults = {
+  const operationDurations = {
     keygen: [],
     encapsulate: [],
     decapsulate: [],
   };
 
-  // Key generation performance measurement
+  // Key generation, encapsulation, and decapsulation performance measurement
   for (let i = 0; i < iterations; i++) {
     performance.mark("keygen-start");
     const { publicKey, privateKey } = await algorithm.keypair();
@@ -108,7 +108,7 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
     performance.measure("Keygen", "keygen-start", "keygen-end");
     const keygenMeasure = performance.getEntriesByName("Keygen").pop();
 
-    medianResults.keygen.push(keygenMeasure.duration);
+    operationDurations.keygen.push(keygenMeasure.duration);
     results.push({
       algorithm: algorithmName,
       operation: "keygen",
@@ -128,7 +128,7 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
       const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
 
-      medianResults.encapsulate.push(encapsulateMeasure.duration);
+      operationDurations.encapsulate.push(encapsulateMeasure.duration);
       results.push({
         algorithm: algorithmName,
         operation: "encapsulate",
@@ -145,7 +145,7 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
       const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
 
-      medianResults.decapsulate.push(decapsulateMeasure.duration);
+      operationDurations.decapsulate.push(decapsulateMeasure.duration);
       results.push({
         algorithm: algorithmName,
         operation: "decapsulate",
@@ -159,7 +159,7 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       performance.measure("Sign", "sign-start", "sign-end");
       const signMeasure = performance.getEntriesByName("Sign").pop();
 
-      medianResults.encapsulate.push(signMeasure.duration);
+      operationDurations.encapsulate.push(signMeasure.duration);
       results.push({
         algorithm: algorithmName,
         operation: "sign",
@@ -177,7 +177,7 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
       performance.measure("Verify", "verify-start", "verify-end");
       const verifyMeasure = performance.getEntriesByName("Verify").pop();
 
-      medianResults.decapsulate.push(verifyMeasure.duration);
+      operationDurations.decapsulate.push(verifyMeasure.duration);
       results.push({
         algorithm: algorithmName,
         operation: "verify",
@@ -190,13 +190,16 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
     performance.clearMeasures();
   }
 
+  // Calculate median times only after all iterations are completed
+  const medianResults = {
+    keygen: calculateMedian(operationDurations.keygen),
+    encapsulate: calculateMedian(operationDurations.encapsulate),
+    decapsulate: calculateMedian(operationDurations.decapsulate),
+  };
+
   return {
     algorithm: algorithmName,
-    median: {
-      keygen: calculateMedian(medianResults.keygen),
-      encapsulate: calculateMedian(medianResults.encapsulate),
-      decapsulate: calculateMedian(medianResults.decapsulate),
-    },
+    median: medianResults,
     results,
   };
 }
