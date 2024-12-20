@@ -84,7 +84,7 @@ async function measurePerformance(algorithmName, algorithm, iterations = 1) {
   performance.mark("keygen-end");
   performance.measure("Keygen", "keygen-start", "keygen-end");
   const keygenMeasure = performance.getEntriesByName("Keygen").pop();
-  operationDurations.keygen = keygenMeasure.duration / iterations; // 平均值計算
+  operationDurations.keygen = keygenMeasure.duration / iterations;
 
   // Encapsulation/Signing performance measurement
   const { publicKey, secretKey } = algorithm.keygen();
