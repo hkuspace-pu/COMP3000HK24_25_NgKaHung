@@ -74,15 +74,6 @@ function saveResultsAsCsv(results) {
   URL.revokeObjectURL(url);
 }
 
-function calculateMedian(values) {
-  if (!values.length) return 0;
-  const sorted = values.slice().sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
 async function measurePerformance(algorithmName, algorithmBuilder, iterations = 1) {
   const algorithm = await algorithmBuilder();
   const totalTimes = {

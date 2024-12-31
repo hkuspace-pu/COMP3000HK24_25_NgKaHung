@@ -1,22 +1,31 @@
-import Chart from "chart.js/auto";
-import {
-  ml_kem512,
-  ml_kem768,
-  ml_kem1024,
-} from "@noble/post-quantum/ml-kem";
-import {
-  ml_dsa44,
-  ml_dsa65,
-  ml_dsa87,
-} from "@noble/post-quantum/ml-dsa";
-import {
-  slh_dsa_sha2_128f, slh_dsa_sha2_128s,
-  slh_dsa_sha2_192f, slh_dsa_sha2_192s,
-  slh_dsa_sha2_256f, slh_dsa_sha2_256s,
-  slh_dsa_shake_128f, slh_dsa_shake_128s,
-  slh_dsa_shake_192f, slh_dsa_shake_192s,
-  slh_dsa_shake_256f, slh_dsa_shake_256s,
-} from "@noble/post-quantum/slh-dsa";
+import ml_kem512 from './PQC WebAssembly/pqc-kem-kyber512-browser/dist/pqc-kem-kyber512.js';
+import ml_kem768 from './PQC WebAssembly/pqc-kem-kyber768-browser/dist/pqc-kem-kyber768.js';
+import ml_kem1024 from './PQC WebAssembly/pqc-kem-kyber1024-browser/dist/pqc-kem-kyber1024.js';
+
+import ml_dsa44 from './PQC WebAssembly/pqc-sign-dilithium2-browser/dist/pqc-sign-dilithium2.js';
+import ml_dsa65 from './PQC WebAssembly/pqc-sign-dilithium3-browser/dist/pqc-sign-dilithium3.js';
+import ml_dsa87 from './PQC WebAssembly/pqc-sign-dilithium5-browser/dist/pqc-sign-dilithium5.js';
+
+import slh_dsa_sha2_128f from './SPHINCS/pqc-sign-sphincs-sha256-128f-robust-browser/package/dist/pqc-sign-sphincs-sha256-128f-robust.js';
+import slh_dsa_sha2_128s from './SPHINCS/pqc-sign-sphincs-sha256-128s-robust-browser/package/dist/pqc-sign-sphincs-sha256-128s-robust.js';
+import slh_dsa_sha2_192f from './SPHINCS/pqc-sign-sphincs-sha256-192f-robust-browser/package/dist/pqc-sign-sphincs-sha256-192f-robust.js';
+import slh_dsa_sha2_192s from './SPHINCS/pqc-sign-sphincs-sha256-192s-robust-browser/package/dist/pqc-sign-sphincs-sha256-192s-robust.js';
+import slh_dsa_sha2_256f from './SPHINCS/pqc-sign-sphincs-sha256-256f-robust-browser/package/dist/pqc-sign-sphincs-sha256-256f-robust.js';
+import slh_dsa_sha2_256s from './SPHINCS/pqc-sign-sphincs-sha256-256s-robust-browser/package/dist/pqc-sign-sphincs-sha256-256s-robust.js';
+import slh_dsa_shake_128f from './SPHINCS/pqc-sign-sphincs-shake256-128f-robust-browser/package/dist/pqc-sign-sphincs-shake256-128f-robust.js';
+import slh_dsa_shake_128s from './SPHINCS/pqc-sign-sphincs-shake256-128s-robust-browser/package/dist/pqc-sign-sphincs-shake256-128s-robust.js';
+import slh_dsa_shake_192f from './SPHINCS/pqc-sign-sphincs-shake256-192f-robust-browser/package/dist/pqc-sign-sphincs-shake256-192f-robust.js';
+import slh_dsa_shake_192s from './SPHINCS/pqc-sign-sphincs-shake256-192s-robust-browser/package/dist/pqc-sign-sphincs-shake256-192s-robust.js';
+import slh_dsa_shake_256f from './SPHINCS/pqc-sign-sphincs-shake256-256f-robust-browser/package/dist/pqc-sign-sphincs-shake256-256f-robust.js';
+import slh_dsa_shake_256s from './SPHINCS/pqc-sign-sphincs-shake256-256s-robust-browser/package/dist/pqc-sign-sphincs-shake256-256s-robust.js';
+
+import falcon_512 from './PQC WebAssembly/pqc-sign-falcon-512-browser/dist/pqc-sign-falcon-512.js';
+import falcon_1024 from './PQC WebAssembly/pqc-sign-falcon-1024-browser/dist/pqc-sign-falcon-1024.js';
+
+import { Chart, registerables } from "https://cdn.jsdelivr.net/npm/chart.js/+esm";
+
+Chart.register(...registerables);
+
 
 const algorithms = {
   kyber: {
@@ -37,6 +46,10 @@ const algorithms = {
     slh_dsa_shake_192f, slh_dsa_shake_192s,
     slh_dsa_shake_256f, slh_dsa_shake_256s,
   },
+  falcon:{
+    falcon_512,
+    falcon_1024
+  }
 };
 
 function saveResultsAsCsv(results) {
@@ -61,87 +74,75 @@ function saveResultsAsCsv(results) {
   URL.revokeObjectURL(url);
 }
 
-function saveChartAsImage(chart) {
-  const link = document.createElement("a");
-  link.download = "PQC_Performance_Chart.png";
-  link.href = chart.toBase64Image("image/png", 1.0);
-  link.click();
-}
-
-
-async function measurePerformance(algorithmName, algorithm, iterations = 1) {
-  const operationDurations = {
+async function measurePerformance(algorithmName, algorithmBuilder, iterations = 1) {
+  const algorithm = await algorithmBuilder(true);
+  const totalTimes = {
     keygen: 0,
     encapsulate: 0,
     decapsulate: 0,
   };
 
-  // Key generation performance measurement
-  performance.mark("keygen-start");
+  const testMessage = new Uint8Array([0x44, 0x61, 0x73, 0x68, 0x6c, 0x61, 0x6e, 0x65]); // "Dashlane" in ASCII
+
+  // Measure Key Generation
+  const keygenStartTime = performance.now();
   for (let i = 0; i < iterations; i++) {
-    const { publicKey, secretKey } = algorithm.keygen();
+    const { publicKey, privateKey } = await algorithm.keypair();
   }
-  performance.mark("keygen-end");
-  performance.measure("Keygen", "keygen-start", "keygen-end");
-  const keygenMeasure = performance.getEntriesByName("Keygen").pop();
-  operationDurations.keygen = keygenMeasure.duration / iterations;
-
-  // Encapsulation/Signing performance measurement
-  const { publicKey, secretKey } = algorithm.keygen();
-  const testMessage = new TextEncoder().encode("Test message");
+  const keygenEndTime = performance.now();
+  totalTimes.keygen = (keygenEndTime - keygenStartTime) / iterations;
 
   if (algorithm.encapsulate) {
-    performance.mark("encapsulate-start");
+    // Generate keypair once for encapsulation and decapsulation
+    const { publicKey, privateKey } = await algorithm.keypair();
+
+    // Measure Encapsulation
+    const encapsulateStartTime = performance.now();
     for (let i = 0; i < iterations; i++) {
-      const { cipherText, sharedSecret } = algorithm.encapsulate(publicKey);
+      const { ciphertext, sharedSecret } = await algorithm.encapsulate(publicKey);
     }
-    performance.mark("encapsulate-end");
-    performance.measure("Encapsulate", "encapsulate-start", "encapsulate-end");
-    const encapsulateMeasure = performance.getEntriesByName("Encapsulate").pop();
-    operationDurations.encapsulate = encapsulateMeasure.duration / iterations; // 平均值計算
+    const encapsulateEndTime = performance.now();
+    totalTimes.encapsulate = (encapsulateEndTime - encapsulateStartTime) / iterations;
+
+    // Measure Decapsulation
+    const { ciphertext } = await algorithm.encapsulate(publicKey);
+    const decapsulateStartTime = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      const { sharedSecret } = await algorithm.decapsulate(ciphertext, privateKey);
+    }
+    const decapsulateEndTime = performance.now();
+    totalTimes.decapsulate = (decapsulateEndTime - decapsulateStartTime) / iterations;
   } else if (algorithm.sign) {
-    performance.mark("sign-start");
-    for (let i = 0; i < iterations; i++) {
-      const signature = algorithm.sign(secretKey, testMessage);
-    }
-    performance.mark("sign-end");
-    performance.measure("Sign", "sign-start", "sign-end");
-    const signMeasure = performance.getEntriesByName("Sign").pop();
-    operationDurations.encapsulate = signMeasure.duration / iterations; // 平均值計算
-  }
+    // Generate keypair once for signing and verifying
+    const { publicKey, privateKey } = await algorithm.keypair();
 
-  // Decapsulation/Verification performance measurement
-  if (algorithm.encapsulate) {
-    const { cipherText } = algorithm.encapsulate(publicKey);
-    performance.mark("decapsulate-start");
+    // Measure Signing
+    const signStartTime = performance.now();
     for (let i = 0; i < iterations; i++) {
-      const sharedSecret = algorithm.decapsulate(cipherText, secretKey);
+      const { signature } = await algorithm.sign(testMessage, privateKey);
     }
-    performance.mark("decapsulate-end");
-    performance.measure("Decapsulate", "decapsulate-start", "decapsulate-end");
-    const decapsulateMeasure = performance.getEntriesByName("Decapsulate").pop();
-    operationDurations.decapsulate = decapsulateMeasure.duration / iterations; // 平均值計算
-  } else if (algorithm.verify) {
-    const signature = algorithm.sign(secretKey, testMessage);
-    performance.mark("verify-start");
-    for (let i = 0; i < iterations; i++) {
-      const isValid = algorithm.verify(publicKey, testMessage, signature);
-    }
-    performance.mark("verify-end");
-    performance.measure("Verify", "verify-start", "verify-end");
-    const verifyMeasure = performance.getEntriesByName("Verify").pop();
-    operationDurations.decapsulate = verifyMeasure.duration / iterations; 
-  }
+    const signEndTime = performance.now();
+    totalTimes.encapsulate = (signEndTime - signStartTime) / iterations; // Store signing time as encapsulate
 
-  performance.clearMarks();
-  performance.clearMeasures();
+    // Measure Verification
+    const { signature } = await algorithm.sign(testMessage, privateKey);
+    const verifyStartTime = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      const validSignature = await algorithm.verify(signature, testMessage, publicKey);
+    }
+    const verifyEndTime = performance.now();
+    totalTimes.decapsulate = (verifyEndTime - verifyStartTime) / iterations; // Store verification time as decapsulate
+  }
 
   return {
     algorithm: algorithmName,
-    average: operationDurations,
+    average: {
+      keygen: totalTimes.keygen,
+      encapsulate: totalTimes.encapsulate,
+      decapsulate: totalTimes.decapsulate,
+    },
   };
 }
-
 async function runTestsWithProgress() {
   const progressBar = document.getElementById("progressBar");
   const progressLabel = document.getElementById("progressLabel");
@@ -159,6 +160,9 @@ async function runTestsWithProgress() {
   if (document.getElementById("SPHINCS").checked) {
     selectedAlgorithms.push(...Object.entries(algorithms.sphincs));
   }
+  if (document.getElementById("FALCON").checked) {
+    selectedAlgorithms.push(...Object.entries(algorithms.falcon));
+  }
 
   const totalAlgorithms = selectedAlgorithms.length;
 
@@ -170,12 +174,12 @@ async function runTestsWithProgress() {
   const allResults = [];
 
   for (let i = 0; i < totalAlgorithms; i++) {
-    const [name, algorithm] = selectedAlgorithms[i];
+    const [name, algorithmBuilder] = selectedAlgorithms[i];
 
     progressLabel.textContent = `Testing ${name} (${i + 1}/${totalAlgorithms})...`;
     console.log(`Testing algorithm: ${name}...`);
 
-    const result = await measurePerformance(name, algorithm, iterations);
+    const result = await measurePerformance(name, algorithmBuilder, iterations);
     allResults.push(result);
 
     const progressPercentage = ((i + 1) / totalAlgorithms) * 100;
@@ -195,7 +199,6 @@ async function runTestsWithProgress() {
 
   return allResults;
 }
-
 const operations = ["keygen", "encapsulate", "decapsulate"];
 const colors = {
   keygen: "rgba(255, 99, 132, 1)",
@@ -267,7 +270,7 @@ window.addEventListener("load", () => {
         label: operationDisplayNames[operation],
         data: results.map((result) => ({
           x: result.algorithm,
-          y: result.average[operation] || 0.01, 
+          y: result.average[operation] || 0.01,
         })),
         backgroundColor: colors[operation],
         pointStyle: pointStyles[operation],
@@ -276,28 +279,23 @@ window.addEventListener("load", () => {
 
       chart.update();
       const saveCsvButton = document.getElementById("saveCsvButton");
-      const saveImageButton = document.getElementById("saveImageButton");
-
-      saveCsvButton.style.display = "block";
-      saveImageButton.style.display = "block";
+      document.getElementById("saveCsvButton").style.display = "block";
+      document.getElementById("saveImageButton").style.display = "block";
 
       saveCsvButton.replaceWith(saveCsvButton.cloneNode(true));
-      saveImageButton.replaceWith(saveImageButton.cloneNode(true));
-
       document.getElementById("saveCsvButton").addEventListener("click", () => {
-        saveResultsAsCsv(results); 
+        saveResultsAsCsv(results);
       });
 
       document.getElementById("saveImageButton").addEventListener("click", () => {
-        saveChartAsImage(chart); 
+        saveChartAsImage(chart);
       });
-
     } catch (error) {
       console.error("Error running tests:", error);
       alert("Failed to run tests. Check the console for details.");
     } finally {
-      const closeButton = document.getElementById("closeButton1");
-      closeButton.style.display = "block";
+      const close = document.getElementById("closeButton1");
+      close.style.display = "block";
     }
   });
 });
