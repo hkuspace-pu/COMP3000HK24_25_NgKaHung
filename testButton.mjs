@@ -280,16 +280,12 @@ window.addEventListener("load", () => {
       chart.update();
       const saveCsvButton = document.getElementById("saveCsvButton");
       document.getElementById("saveCsvButton").style.display = "block";
-      document.getElementById("saveImageButton").style.display = "block";
 
       saveCsvButton.replaceWith(saveCsvButton.cloneNode(true));
       document.getElementById("saveCsvButton").addEventListener("click", () => {
         saveResultsAsCsv(results);
       });
 
-      document.getElementById("saveImageButton").addEventListener("click", () => {
-        saveChartAsImage(chart);
-      });
     } catch (error) {
       console.error("Error running tests:", error);
       alert("Failed to run tests. Check the console for details.");
