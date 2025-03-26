@@ -1,0 +1,84 @@
+@startuml
+interface KEMStrategy {
+  + keypair()
+  + encapsulate()
+  + decapsulate()
+}
+interface DSAStrategy {
+  + keypair()
+  + sign()
+  + verify()
+}
+
+
+class KyberStrategy {
+  + keypair()
+  + encapsulate()
+  + decapsulate()
+}
+
+class DilithiumStrategy {
+  + keypair()
+  + sign()
+  + verify()
+}
+
+class SphincsStrategy {
+  + keypair()
+  + sign()
+  + verify()
+}
+
+class FalconStrategy {
+  + keypair()
+  + sign()
+  + verify()
+}
+class AlgorithmFactory {
+  + createAlgorithmInstance()
+}
+class PerformanceTester {
+  - algorithmName: string
+  - initialize: boolean
+  - iterations: number
+  - algorithm: KEMStrategy | DSAStrategy
+  + initializeAlgorithm()
+  + runTests()
+}
+
+class AlgorithmTester {
+  - iterations: number
+  - initialize: boolean
+  - selectedAlgorithms: string[]
+  - results: Object[]
+  - progressTracker: ProgressTracker
+  + setSelectedAlgorithms()
+  + testSingleAlgorithm()
+  + runAllTests()
+}
+class ProgressTracker {
+  + initialize()
+  + updateLabel()
+  + updateProgress()
+  + completeProgress()
+}
+AlgorithmTester --> ProgressTracker : uses
+
+AlgorithmTester *-- PerformanceTester
+
+PerformanceTester ..> AlgorithmFactory : use
+
+
+AlgorithmFactory --> KyberStrategy
+AlgorithmFactory --> DilithiumStrategy
+AlgorithmFactory --> SphincsStrategy
+AlgorithmFactory --> FalconStrategy
+
+KEMStrategy <|-- KyberStrategy
+DSAStrategy <|-- DilithiumStrategy
+DSAStrategy <|-- SphincsStrategy
+DSAStrategy <|-- FalconStrategy
+
+
+
+@enduml

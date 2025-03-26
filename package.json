@@ -17,12 +17,12 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.4.6",
     "crypto-js": "^4.2.0",
-    "openpgp": "^6.0.1",
     "pidusage": "^3.0.2",
     "pqclean": "^0.5.0"
   },
   "devDependencies": {
     "node-loader": "^2.1.0",
+    "openpgp": "^6.1.0",
     "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4"
   }

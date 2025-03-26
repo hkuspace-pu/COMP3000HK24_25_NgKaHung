@@ -24,8 +24,26 @@ function saveResultsAsCsv(results) {
   const csvRows = [csvHeaders.join(",")];
 
   results.forEach((result) => {
-    Object.entries(result.average).forEach(([operation, averageTime]) => {
-      csvRows.push(`${result.algorithm},${operation},${averageTime}`);
+    const isSphincs = result.algorithm.toLowerCase().startsWith("sphincs");
+
+    Object.entries(result.average).forEach(([operation, value]) => {
+      if (operation.endsWith("StdDev") && !isSphincs) {
+        return;
+      }
+
+      if (operation.endsWith("StdDev")) {
+        const baseOperation = operation.replace("StdDev", ""); 
+        const existingRowIndex = csvRows.findIndex((row) =>
+          row.startsWith(`${result.algorithm},${baseOperation},`)
+        );
+        if (existingRowIndex !== -1) {
+          const existingRow = csvRows[existingRowIndex].split(",");
+          existingRow[3] = value;
+          csvRows[existingRowIndex] = existingRow.join(",");
+        }
+      } else {
+        csvRows.push(`${result.algorithm},${operation},${value},`);
+      }
     });
   });
 
@@ -40,7 +58,6 @@ function saveResultsAsCsv(results) {
 
   URL.revokeObjectURL(url);
 }
-
 window.addEventListener("load", () => {
   const chartManager = new ChartManager("performanceScatterPlot");
   chartManager.initialize();

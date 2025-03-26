@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>OpenPGP + Kyber Test</title>
+    <style>
+        body {
+            margin: 1rem;
+            font-family: sans-serif;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+        @media (max-width: 600px) {
+            .result {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Post-Quantum Experiment: OpenPGP + Kyber</h1>
+<p>
+    This page demonstrates a simple experiment replacing classical OpenPGP
+    encryption with a post-quantum algorithm (Kyber). We measure key generation,
+    encryption, and decryption times, as well as ciphertext size, to evaluate
+    feasibility in a browser environment.
+</p>
+
+<button id="runTestButton">Run PQC Test</button>
+
+<div class="result" id="output"></div>
+
+<script type="module">
+    import * as openpgp from './PQC WebAssembly/openpgp/dist/openpgp.min.mjs';
+    import kyber512 from './PQC WebAssembly/pqc-kem-kyber512-browser/dist/pqc-kem-kyber512.js';
+    import kyber768 from './PQC WebAssembly/pqc-kem-kyber768-browser/dist/pqc-kem-kyber768.js';
+    import kyber1024 from './PQC WebAssembly/pqc-kem-kyber1024-browser/dist/pqc-kem-kyber1024.js';
+
+    const outputEl = document.getElementById('output');
+
+    /**
+     * Utility function to log results to the page.
+     */
+    function logResult(...messages) {
+        messages.forEach(msg => {
+            outputEl.textContent += msg + "\n";
+        });
+    }
+
+    /**
+     * PQC Algorithms registry.
+     */
+    const algorithms = {
+        'kyber512': kyber512,
+        'kyber768': kyber768,
+        'kyber1024': kyber1024
+    };
+
+    /**
+     * Key generation
+     */
+    async function keygen(algorithm) {
+        const kem = await algorithm();
+        const { publicKey, privateKey } = await kem.keypair();
+        return { publicKey, privateKey };
+    }
+
+    /**
+     * Encapsulate
+     */
+    async function encapsulate(algorithm, publicKey) {
+        const kem = await algorithm();
+        const { ciphertext, sharedSecret } = await kem.encapsulate(publicKey);
+        return { ciphertext, sharedSecret };
+    }
+
+    /**
+     * Decapsulate
+     */
+    async function decapsulate(algorithm, ciphertext, privateKey) {
+        const kem = await algorithm();
+        const { sharedSecret } = await kem.decapsulate(ciphertext, privateKey);
+        return sharedSecret;
+    }
+
+    /**
+     * Encrypt a message using the shared secret from Kyber + OpenPGP symmetric encryption.
+     */
+    async function pqcEncrypt(data, algorithmName) {
+        const algorithm = algorithms[algorithmName];
+        if (!algorithm) {
+            throw new Error(`Unsupported Kyber algorithm: ${algorithmName}`);
+        }
+
+        // Measure Key Generation Time
+        const t0 = performance.now();
+        const { publicKey, privateKey } = await keygen(algorithm);
+        const t1 = performance.now();
+
+        // Measure Encapsulation Time
+        const t2 = performance.now();
+        const { ciphertext, sharedSecret } = await encapsulate(algorithm, publicKey);
+        const t3 = performance.now();
+
+        const binaryData = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+
+        const message = await openpgp.createMessage({ binary: binaryData });
+
+        // Measure PQC-based Symmetric Encryption Time
+        const t4 = performance.now();
+        const encryptedData = await openpgp.encrypt({
+            message,
+            passwords: [sharedSecret], 
+            format: 'binary'
+        });
+        const t5 = performance.now();
+
+        // Log times
+        logResult(`Keygen time:         ${(t1 - t0).toFixed(2)} ms`,
+                  `Encapsulate time:    ${(t3 - t2).toFixed(2)} ms`,
+                  `Sym. Encrypt time:   ${(t5 - t4).toFixed(2)} ms`);
+
+        // Log sizes
+        logResult(`Public key size:     ${publicKey.length} bytes`,
+                  `Ciphertext size:     ${ciphertext.length} bytes`);
+
+        return {
+            encryptedData,  
+            ciphertext,  
+            privateKey
+        };
+    }
+
+    /**
+     * Decrypt a message using the shared secret from Kyber + OpenPGP symmetric decryption.
+     */
+    async function pqcDecrypt({ encryptedData, ciphertext, privateKey }, algorithmName) {
+        const algorithm = algorithms[algorithmName];
+        if (!algorithm) {
+            throw new Error(`Unsupported Kyber algorithm: ${algorithmName}`);
+        }
+
+        // Measure Decapsulation Time
+        const t0 = performance.now();
+        const sharedSecret = await decapsulate(algorithm, ciphertext, privateKey);
+        const t1 = performance.now();
+
+        // Measure Decryption Time
+        const t2 = performance.now();
+        const encryptedMessage = await openpgp.readMessage({ binaryMessage: encryptedData });
+        const { data: decryptedData } = await openpgp.decrypt({
+            message: encryptedMessage,
+            passwords: [sharedSecret],
+            format: 'binary'
+        });
+        const t3 = performance.now();
+
+        // Log times
+        logResult(`Decapsulate time:    ${(t1 - t0).toFixed(2)} ms`,
+                  `Sym. Decrypt time:   ${(t3 - t2).toFixed(2)} ms`);
+
+        const decodedData = new TextDecoder().decode(decryptedData);
+        return decodedData;
+    }
+
+    document.getElementById("runTestButton").addEventListener("click", async () => {
+        outputEl.textContent = ''; // Clear output on each run
+        try {
+            logResult("=== Starting PQC Experiment ===");
+            const data = "Hello, Post-Quantum Cryptography!";
+            const algorithmName = 'kyber512';
+
+            logResult(`Original Data: ${data}`);
+            logResult(`Selected Algorithm: ${algorithmName}\n`);
+
+            const encrypted = await pqcEncrypt(data, algorithmName);
+            logResult("\n[Encryption Completed]");
+            logResult(`Kyber Ciphertext (raw bytes): ${encrypted.ciphertext}\n`);
+
+            const decrypted = await pqcDecrypt(encrypted, algorithmName);
+            logResult("\n[Decryption Completed]");
+            logResult(`Decrypted Data: ${decrypted}`);
+
+            if (decrypted === data) {
+                logResult("\n[Result] Decryption matches original data. Test successful!");
+            } else {
+                logResult("\n[Result] Decryption mismatch! Something went wrong.");
+            }
+
+            logResult("=== Experiment Finished ===");
+        } catch (error) {
+            console.error("Error:", error);
+            logResult(`An error occurred: ${error.message}`);
+        }
+    });
+</script>
+</body>
+</html>

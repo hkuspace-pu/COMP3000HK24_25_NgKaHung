@@ -38,22 +38,25 @@ const algorithms = {
   falcon_1024,
 };
 
-function hexToUint8Array(hex) {
-  if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) {
-    throw new Error("Invalid hex input: must be an even-length hex string.");
-  }
-  const length = hex.length / 2;
-  const uint8Array = new Uint8Array(length);
-  for (let i = 0; i < length; i++) {
-    uint8Array[i] = parseInt(hex.substr(i * 2, 2), 16);
+// Base64 Helper Functions
+function base64ToUint8Array(base64) {
+  const binaryString = atob(base64);
+  const uint8Array = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    uint8Array[i] = binaryString.charCodeAt(i);
   }
   return uint8Array;
 }
 
-function uint8ArrayToHex(array) {
-  return Array.from(array)
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+function uint8ArrayToBase64(array) {
+  const binaryString = Array.from(array)
+    .map((byte) => String.fromCharCode(byte))
+    .join('');
+  return btoa(binaryString);
+}
+
+function isValidBase64(input) {
+  return /^[A-Za-z0-9+/]*={0,2}$/.test(input) && input.length % 4 === 0;
 }
 
 function showError(message) {
@@ -75,8 +78,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const algorithm = await algorithms[selectedAlgorithm]();
       const { publicKey, privateKey } = await algorithm.keypair();
 
-      document.getElementById("signingPublickeyGen").value = uint8ArrayToHex(publicKey);
-      document.getElementById("signingPrivatekeyGen").value = uint8ArrayToHex(privateKey);
+      document.getElementById("signingPublickeyGen").value = uint8ArrayToBase64(publicKey);
+      document.getElementById("signingPrivatekeyGen").value = uint8ArrayToBase64(privateKey);
     } catch (error) {
       showError(`Error during key generation: ${error.message}`);
       console.error("Error during key generation:", error);
@@ -96,13 +99,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const algorithm = await algorithms[selectedAlgorithm]();
 
-      const privateKeyHex = document.getElementById("privatekeyInput").value.trim();
-      if (!privateKeyHex) {
+      const privateKeyBase64 = document.getElementById("privatekeyInput").value.trim();
+      if (!privateKeyBase64) {
         showError("Private key cannot be empty.");
         return;
       }
 
-      const privateKey = hexToUint8Array(privateKeyHex);
+      if (!isValidBase64(privateKeyBase64)) {
+        showError("Invalid private key format. Please provide a valid Base64 string.");
+        return;
+      }
+
+      const privateKey = base64ToUint8Array(privateKeyBase64);
       const message = document.getElementById("messageInput").value.trim();
       if (!message) {
         showError("Message cannot be empty.");
@@ -113,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const { signature } = await algorithm.sign(messageBytes, privateKey);
 
-      document.getElementById("signatureOutput").value = uint8ArrayToHex(signature);
+      document.getElementById("signatureOutput").value = uint8ArrayToBase64(signature);
     } catch (error) {
       showError(`Error during signing: ${error.message}`);
       console.error("Error during signing:", error);
@@ -133,13 +141,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const algorithm = await algorithms[selectedAlgorithm]();
 
-      const publicKeyHex = document.getElementById("publickeyInput").value.trim();
-      if (!publicKeyHex) {
+      const publicKeyBase64 = document.getElementById("publickeyInput").value.trim();
+      if (!publicKeyBase64) {
         showError("Public key cannot be empty.");
         return;
       }
 
-      const publicKey = hexToUint8Array(publicKeyHex);
+      if (!isValidBase64(publicKeyBase64)) {
+        showError("Invalid public key format. Please provide a valid Base64 string.");
+        return;
+      }
+
+      const publicKey = base64ToUint8Array(publicKeyBase64);
       const receivedMessage = document.getElementById("receivedMessageInput").value.trim();
       if (!receivedMessage) {
         showError("Message cannot be empty.");
@@ -147,13 +160,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const messageBytes = new TextEncoder().encode(receivedMessage);
-      const signatureHex = document.getElementById("signatureInput").value.trim();
-      if (!signatureHex) {
+      const signatureBase64 = document.getElementById("signatureInput").value.trim();
+      if (!signatureBase64) {
         showError("Signature cannot be empty.");
         return;
       }
 
-      const signature = hexToUint8Array(signatureHex);
+      if (!isValidBase64(signatureBase64)) {
+        showError("Invalid signature format. Please provide a valid Base64 string.");
+        return;
+      }
+
+      const signature = base64ToUint8Array(signatureBase64);
 
       const validSignature = await algorithm.verify(signature, messageBytes, publicKey);
 

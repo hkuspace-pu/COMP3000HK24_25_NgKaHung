@@ -23,6 +23,8 @@ import falcon_512 from './PQC WebAssembly/pqc-sign-falcon-512-browser/dist/pqc-s
 import falcon_1024 from './PQC WebAssembly/pqc-sign-falcon-1024-browser/dist/pqc-sign-falcon-1024.js';
 
 import { Chart, registerables } from "https://cdn.jsdelivr.net/npm/chart.js/+esm";
+import * as openpgp from './PQC WebAssembly/openpgp/dist/openpgp.min.mjs';
+
 
 Chart.register(...registerables);
 
@@ -46,7 +48,7 @@ const algorithms = {
     slh_dsa_shake_192f, slh_dsa_shake_192s,
     slh_dsa_shake_256f, slh_dsa_shake_256s,
   },
-  falcon:{
+  falcon: {
     falcon_512,
     falcon_1024
   }
@@ -80,66 +82,105 @@ async function measurePerformance(algorithmName, algorithmBuilder, iterations = 
     keygen: 0,
     encapsulate: 0,
     decapsulate: 0,
+    openpgpEnc: 0,
+    openpgpDec: 0, 
   };
 
-  const testMessage = new Uint8Array([0x44, 0x61, 0x73, 0x68, 0x6c, 0x61, 0x6e, 0x65]); // "Dashlane" in ASCII
+  const testMessage = new Uint8Array([0x44, 0x61, 0x73, 0x68, 0x6c, 0x61, 0x6e, 0x65]);
 
-  // Measure Key Generation
   const keygenStartTime = performance.now();
   for (let i = 0; i < iterations; i++) {
-    const { publicKey, privateKey } = await algorithm.keypair();
+    await algorithm.keypair();
   }
   const keygenEndTime = performance.now();
   totalTimes.keygen = (keygenEndTime - keygenStartTime) / iterations;
 
   if (algorithm.encapsulate) {
-    // Generate keypair once for encapsulation and decapsulation
     const { publicKey, privateKey } = await algorithm.keypair();
 
-    // Measure Encapsulation
     const encapsulateStartTime = performance.now();
+    let tempCiphertext, tempSharedSecret;
     for (let i = 0; i < iterations; i++) {
       const { ciphertext, sharedSecret } = await algorithm.encapsulate(publicKey);
+      tempCiphertext = ciphertext;    
+      tempSharedSecret = sharedSecret; 
     }
     const encapsulateEndTime = performance.now();
     totalTimes.encapsulate = (encapsulateEndTime - encapsulateStartTime) / iterations;
 
-    // Measure Decapsulation
-    const { ciphertext } = await algorithm.encapsulate(publicKey);
+    if (tempSharedSecret) {
+      const openpgpMessage = await openpgp.createMessage({ binary: testMessage });
+
+      const openpgpEncStart = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        await openpgp.encrypt({
+          message: openpgpMessage,
+          passwords: [tempSharedSecret],
+          format: 'binary',
+        });
+      }
+      const openpgpEncEnd = performance.now();
+      totalTimes.openpgpEnc = (openpgpEncEnd - openpgpEncStart) / iterations;
+    }
+
     const decapsulateStartTime = performance.now();
+    let finalSharedSecret;
     for (let i = 0; i < iterations; i++) {
-      const { sharedSecret } = await algorithm.decapsulate(ciphertext, privateKey);
+      const { sharedSecret } = await algorithm.decapsulate(tempCiphertext, privateKey);
+      finalSharedSecret = sharedSecret; 
     }
     const decapsulateEndTime = performance.now();
     totalTimes.decapsulate = (decapsulateEndTime - decapsulateStartTime) / iterations;
-  } else if (algorithm.sign) {
-    // Generate keypair once for signing and verifying
-    const { publicKey, privateKey } = await algorithm.keypair();
 
-    // Measure Signing
+    if (finalSharedSecret) {
+      const openpgpMessage = await openpgp.createMessage({ binary: testMessage });
+      const { data: sampleCipher } = await openpgp.encrypt({
+        message: openpgpMessage,
+        passwords: [finalSharedSecret],
+        format: 'binary',
+      });
+
+      const openpgpDecStart = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        const encryptedMsg = await openpgp.readMessage({ binaryMessage: sampleCipher });
+        await openpgp.decrypt({
+          message: encryptedMsg,
+          passwords: [finalSharedSecret],
+          format: 'binary',
+        });
+      }
+      const openpgpDecEnd = performance.now();
+      totalTimes.openpgpDec = (openpgpDecEnd - openpgpDecStart) / iterations;
+    }
+  }
+  else if (algorithm.sign) {
+    const { publicKey, privateKey } = await algorithm.keypair();
     const signStartTime = performance.now();
+    let lastSignature;
     for (let i = 0; i < iterations; i++) {
       const { signature } = await algorithm.sign(testMessage, privateKey);
+      lastSignature = signature;
     }
     const signEndTime = performance.now();
-    totalTimes.encapsulate = (signEndTime - signStartTime) / iterations; // Store signing time as encapsulate
+    totalTimes.encapsulate = (signEndTime - signStartTime) / iterations;
 
-    // Measure Verification
-    const { signature } = await algorithm.sign(testMessage, privateKey);
+    // Verification
     const verifyStartTime = performance.now();
     for (let i = 0; i < iterations; i++) {
-      const validSignature = await algorithm.verify(signature, testMessage, publicKey);
+      await algorithm.verify(lastSignature, testMessage, publicKey);
     }
     const verifyEndTime = performance.now();
-    totalTimes.decapsulate = (verifyEndTime - verifyStartTime) / iterations; // Store verification time as decapsulate
-  }
+    totalTimes.decapsulate = (verifyEndTime - verifyStartTime) / iterations;
 
+  }
   return {
     algorithm: algorithmName,
     average: {
       keygen: totalTimes.keygen,
       encapsulate: totalTimes.encapsulate,
       decapsulate: totalTimes.decapsulate,
+      openpgpEnc: totalTimes.openpgpEnc,
+      openpgpDec: totalTimes.openpgpDec
     },
   };
 }
