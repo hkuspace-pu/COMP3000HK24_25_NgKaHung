@@ -4,9 +4,9 @@ The ongoing advancements in quantum computing pose significant challenges to tra
 The platform makes contribution to advancing PQC in front-end paradigms. At the same time, it presents valuable insight to stakeholders, from academic researchers to industry practitioners, regarding the possible inclusion of PQC in production-grade web modalities. Thus, the work assists global efforts towards securing digital infrastructures before the disruptive power of the quantum age.
 # Preview #
 - Individual PQC algorithms
-- ![image](https://github.com/hkuspace-pu/COMP3000HK24_25_NgKaHung/tree/main/Picture/UI.png)
+- ![image](https://github.com/hkuspace-pu/COMP3000HK24_25_NgKaHung/blob/c618581f70008bd1caa92d365d161e81b442eb3f/Picture/UI.png)
 - Experiment Module  
-- ![image](https://github.com/hkuspace-pu/COMP3000HK24_25_NgKaHung/tree/main/Picture/Test.png)
+- ![image](https://github.com/hkuspace-pu/COMP3000HK24_25_NgKaHung/blob/c618581f70008bd1caa92d365d161e81b442eb3f/Picture/Test.png)
 # Demo #
 - [LIve Demo](https://hkuspace-pu.github.io/COMP3000HK24_25_NgKaHung/)
 # Credit #
