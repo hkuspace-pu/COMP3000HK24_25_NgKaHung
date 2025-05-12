@@ -7,6 +7,8 @@ The platform makes contribution to advancing PQC in front-end paradigms. At the 
 - ![image](https://github.com/hkuspace-pu/COMP3000HK24_25_NgKaHung/tree/main/Picture/UI.png)
 - Experiment Module  
 - ![image](https://github.com/hkuspace-pu/COMP3000HK24_25_NgKaHung/tree/main/Picture/Test.png)
+# Demo #
+- [LIve Demo](https://hkuspace-pu.github.io/COMP3000HK24_25_NgKaHung/)
 # Credit #
 ## Third party library ##
  - The following third-party libraries were used in this project:
